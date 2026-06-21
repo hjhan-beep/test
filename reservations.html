@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>모닝브루 — 예약 관리</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #fbf7f1;
+      --surface: #ffffff;
+      --ink: #3a2e25;
+      --ink-soft: #6f6256;
+      --line: #ece3d8;
+      --brand: #b5764a;
+      --brand-strong: #9a5f37;
+      --accent: #e08b2d;
+      --accent-strong: #c9761c;
+      --danger: #c0392b;
+      --shadow: 0 10px 30px rgba(90, 60, 35, 0.10);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 28px 18px 64px;
+    }
+
+    .wrap { width: 100%; max-width: 980px; margin: 0 auto; }
+
+    h1, h2, .serif { font-family: 'Gowun Batang', 'Noto Sans KR', serif; }
+
+    /* ===== Header ===== */
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    header .badge {
+      display: inline-block;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      color: var(--brand);
+      background: #fff;
+      border: 1px solid var(--line);
+      padding: 5px 13px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    header h1 { font-size: clamp(28px, 7vw, 40px); }
+    header p { color: var(--ink-soft); margin-top: 6px; font-size: 15px; }
+
+    /* ===== Layout ===== */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+    .panel h2 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+    .panel .panel-sub {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 18px;
+    }
+
+    /* ===== Form ===== */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-strong);
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      font-size: 16px; /* 16px: 모바일 자동 확대 방지 */
+      font-family: inherit;
+      color: var(--ink);
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      background: #fffdfa;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(224, 139, 45, 0.15);
+    }
+    .field .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+
+    .form-error {
+      display: none;
+      font-size: 13px;
+      color: var(--danger);
+      background: #fdecea;
+      border: 1px solid #f5c6c0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+    .form-error.show { display: block; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 13px 22px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+    }
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(224, 139, 45, 0.3);
+    }
+    .btn-primary:hover { background: var(--accent-strong); transform: translateY(-2px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ===== List ===== */
+    .list-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .count-pill {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-strong);
+      background: #fff3e6;
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+
+    ul.reservations { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fffdfa;
+      animation: pop 0.18s ease;
+    }
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .res-avatar {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c89a6f, #b5764a);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 17px;
+      font-family: 'Gowun Batang', serif;
+    }
+    .res-body { flex: 1; min-width: 0; }
+    .res-name {
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .res-time {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 999px;
+      padding: 2px 9px;
+    }
+    .res-meta {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-top: 3px;
+      word-break: break-all;
+    }
+    .btn-delete {
+      flex-shrink: 0;
+      background: #fff;
+      color: var(--danger);
+      border: 1.5px solid #f0c8c2;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+    .btn-delete:hover { background: #fdecea; transform: translateY(-1px); }
+
+    /* ===== 상태 (status) ===== */
+    .res-actions {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .status-select {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .status-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(224, 139, 45, 0.15);
+    }
+
+    /* 상태별 항목 배경/테두리 */
+    .res-item.status-waiting   { background: #fff8ec; border-color: #f3dcb0; }
+    .res-item.status-confirmed { background: #eef7ef; border-color: #bfe0c4; }
+    .res-item.status-cancelled { background: #f4f2f1; border-color: #ddd5cf; opacity: 0.72; }
+    .res-item.status-cancelled .res-name { text-decoration: line-through; color: var(--ink-soft); }
+
+    /* 전체 초기화 버튼 */
+    .btn-reset {
+      background: #fff;
+      color: var(--danger);
+      border: 1.5px solid #f0c8c2;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    .btn-reset:hover { background: #fdecea; }
+    .btn-reset:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ===== Empty state ===== */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--ink-soft);
+    }
+    .empty .emoji { font-size: 44px; display: block; margin-bottom: 12px; }
+    .empty .title { font-family: 'Gowun Batang', serif; font-size: 18px; color: var(--ink); }
+    .empty .desc { font-size: 14px; margin-top: 6px; }
+
+    footer {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    footer a { color: var(--brand-strong); }
+
+    /* ===== Desktop: 2단 ===== */
+    @media (min-width: 760px) {
+      .layout { grid-template-columns: 380px 1fr; }
+      .panel.form-panel { position: sticky; top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="badge">☕ 모닝브루 사장님 전용</span>
+      <h1>예약 관리</h1>
+      <p>출근길 픽업 예약을 한 곳에서 받고 관리하세요</p>
+    </header>
+
+    <div class="layout">
+      <!-- 입력 폼 -->
+      <section class="panel form-panel">
+        <h2>새 예약 추가</h2>
+        <p class="panel-sub">고객 정보를 입력하고 '예약 추가'를 누르세요.</p>
+
+        <div id="formError" class="form-error"></div>
+
+        <form id="resForm" autocomplete="off">
+          <div class="field">
+            <label for="name">이름</label>
+            <input type="text" id="name" placeholder="예: 김모닝" />
+          </div>
+          <div class="field">
+            <label for="phone">연락처</label>
+            <input type="tel" id="phone" placeholder="예: 010-1234-5678" inputmode="tel" />
+          </div>
+          <div class="field">
+            <label for="pickup">픽업 시간</label>
+            <input type="time" id="pickup" />
+            <div class="hint">출근길 픽업 희망 시간</div>
+          </div>
+          <div class="field">
+            <label for="people">인원수</label>
+            <input type="number" id="people" min="1" value="1" inputmode="numeric" />
+          </div>
+          <button type="submit" class="btn btn-primary">＋ 예약 추가</button>
+        </form>
+      </section>
+
+      <!-- 예약 목록 -->
+      <section class="panel">
+        <div class="list-head">
+          <h2>예약 목록</h2>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="count-pill" id="countPill">0건</span>
+            <button type="button" class="btn-reset" id="resetBtn">전체 초기화</button>
+          </div>
+        </div>
+        <ul class="reservations" id="resList"></ul>
+      </section>
+    </div>
+
+    <footer>
+      이 브라우저에 자동 저장됩니다(새로고침해도 유지) ·
+      <a href="index.html">← 가게 홈페이지로</a>
+    </footer>
+  </div>
+
+  <script>
+    // ===== 데이터 저장소 (localStorage 영구 저장) =====
+    const STORAGE_KEY = 'morningbrew_reservations';
+    let reservations = [];
+    let nextId = 1;
+
+    // 저장된 예약 불러오기
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        if (Array.isArray(saved)) {
+          reservations = saved;
+          // nextId는 기존 id 최댓값 + 1로 복원 (id 충돌 방지)
+          nextId = reservations.reduce(function (max, r) {
+            return Math.max(max, r.id || 0);
+          }, 0) + 1;
+        }
+      } catch (e) {
+        // 저장 데이터가 손상된 경우 초기화
+        reservations = [];
+        nextId = 1;
+      }
+    }
+
+    // 현재 예약을 localStorage에 저장
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
+    }
+
+    // 상태 정의 (value → 라벨/클래스)
+    const STATUSES = [
+      { value: 'waiting',   label: '대기중' },
+      { value: 'confirmed', label: '확인완료' },
+      { value: 'cancelled', label: '취소' }
+    ];
+
+    const form = document.getElementById('resForm');
+    const formError = document.getElementById('formError');
+    const listEl = document.getElementById('resList');
+    const countPill = document.getElementById('countPill');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 폼 제출 → 예약 추가
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const pickup = document.getElementById('pickup').value;
+      const people = parseInt(document.getElementById('people').value, 10);
+
+      // 간단한 유효성 검사
+      if (!name) return showError('이름을 입력해 주세요.');
+      if (!phone) return showError('연락처를 입력해 주세요.');
+      if (!pickup) return showError('픽업 시간을 선택해 주세요.');
+      if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
+
+      hideError();
+
+      // 새 예약은 기본 상태 '대기중'
+      reservations.push({ id: nextId++, name, phone, pickup, people, status: 'waiting' });
+      save();
+      render();
+      form.reset();
+      document.getElementById('people').value = 1;
+      document.getElementById('name').focus();
+    });
+
+    // 삭제 (이벤트 위임)
+    listEl.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn-delete');
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      reservations = reservations.filter(function (r) { return r.id !== id; });
+      save();
+      render();
+    });
+
+    // 상태 변경 (드롭다운) — localStorage에도 저장
+    listEl.addEventListener('change', function (e) {
+      const select = e.target.closest('.status-select');
+      if (!select) return;
+      const id = Number(select.dataset.id);
+      const target = reservations.find(function (r) { return r.id === id; });
+      if (target) {
+        target.status = select.value;
+        save();
+        render();
+      }
+    });
+
+    // 전체 초기화
+    resetBtn.addEventListener('click', function () {
+      if (reservations.length === 0) return;
+      if (!confirm('모든 예약을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
+      reservations = [];
+      nextId = 1;
+      save();
+      render();
+    });
+
+    function showError(msg) {
+      formError.textContent = msg;
+      formError.classList.add('show');
+    }
+    function hideError() {
+      formError.classList.remove('show');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // 상태값 → CSS 클래스 접미사
+    const STATUS_CLASS = {
+      waiting: 'status-waiting',
+      confirmed: 'status-confirmed',
+      cancelled: 'status-cancelled'
+    };
+
+    function render() {
+      countPill.textContent = reservations.length + '건';
+      resetBtn.disabled = reservations.length === 0;
+
+      // 빈 상태
+      if (reservations.length === 0) {
+        listEl.innerHTML =
+          '<li class="empty">' +
+            '<span class="emoji">📭</span>' +
+            '<div class="title">아직 예약이 없습니다.</div>' +
+            '<div class="desc">첫 예약을 추가해 보세요!</div>' +
+          '</li>';
+        return;
+      }
+
+      // 픽업 시간 순 정렬 (보기 편하게)
+      const sorted = reservations.slice().sort(function (a, b) {
+        return a.pickup.localeCompare(b.pickup);
+      });
+
+      listEl.innerHTML = sorted.map(function (r) {
+        const initial = escapeHtml(r.name.charAt(0));
+        const status = r.status || 'waiting';                 // 옛 데이터 호환: 기본 대기중
+        const statusClass = STATUS_CLASS[status] || 'status-waiting';
+
+        // 상태 드롭다운 옵션
+        const options = STATUSES.map(function (s) {
+          const selected = s.value === status ? ' selected' : '';
+          return '<option value="' + s.value + '"' + selected + '>' + s.label + '</option>';
+        }).join('');
+
+        return (
+          '<li class="res-item ' + statusClass + '">' +
+            '<div class="res-avatar">' + initial + '</div>' +
+            '<div class="res-body">' +
+              '<div class="res-name">' + escapeHtml(r.name) +
+                '<span class="res-time">⏰ ' + escapeHtml(r.pickup) + '</span>' +
+              '</div>' +
+              '<div class="res-meta">📞 ' + escapeHtml(r.phone) + ' · 👤 ' + r.people + '명</div>' +
+            '</div>' +
+            '<div class="res-actions">' +
+              '<select class="status-select" data-id="' + r.id + '">' + options + '</select>' +
+              '<button class="btn-delete" data-id="' + r.id + '">삭제</button>' +
+            '</div>' +
+          '</li>'
+        );
+      }).join('');
+    }
+
+    // 시작: 저장된 예약 불러오기 → 렌더
+    load();
+    render();
+  </script>
+</body>
+</html>

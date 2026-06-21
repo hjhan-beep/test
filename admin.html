@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -234,6 +233,22 @@
       text-align: right;
     }
 
+    .note-input {
+      width: 160px;
+      padding: 5px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--ink);
+      background: var(--surface);
+      transition: border-color 0.12s;
+      resize: none;
+    }
+    .note-input:focus { outline: none; border-color: var(--brand); }
+    .note-input.saving { border-color: #fde68a; background: #fffbeb; }
+    .note-input.saved  { border-color: #bbf7d0; background: #f0fdf4; }
+
     /* 토스트 */
     .toast {
       position: fixed;
@@ -306,11 +321,12 @@
             <th>예약 시간</th>
             <th>인원수</th>
             <th>상태</th>
+            <th>메모</th>
           </tr>
         </thead>
         <tbody id="tableBody">
           <tr class="state-row">
-            <td colspan="7"><span class="icon">⏳</span>데이터를 불러오는 중…</td>
+            <td colspan="8"><span class="icon">⏳</span>데이터를 불러오는 중…</td>
           </tr>
         </tbody>
       </table>
@@ -319,9 +335,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-
-  <!-- 임시 디버그 패널 -->
-  <div id="debugPanel" style="margin:20px;padding:16px;background:#1e293b;color:#7dd3fc;font-family:monospace;font-size:13px;border-radius:8px;white-space:pre-wrap;display:none;"></div>
 
   <script>
     // ── 상수 & 상태 (IIFE보다 먼저 선언) ───────────────────────
@@ -372,18 +385,12 @@
       var data = result.data;
       var error = result.error;
 
-      // 결과를 화면 상단에 직접 표시
-      document.getElementById('todayBadge').textContent =
-        '오류:' + JSON.stringify(error) + ' / 건수:' + (data ? data.length : 'null');
-
       if (error) {
         document.getElementById('tableBody').innerHTML =
-          '<tr class="state-row"><td colspan="7">' +
+          '<tr class="state-row"><td colspan="8">' +
           '<span class="icon">⚠️</span>' +
           '<strong style="color:#c0392b;">데이터 로드 실패</strong><br>' +
-          '<code style="font-size:12px;color:#64748b;">' + esc(error.message) + '</code><br><br>' +
-          '<span style="font-size:13px;color:#64748b;">Supabase 대시보드 → Authentication → Policies → reservations 테이블에<br>' +
-          'SELECT 정책(anon 허용)이 있는지 확인하세요.</span>' +
+          '<code style="font-size:12px;color:#64748b;">' + esc(error.message) + '</code>' +
           '</td></tr>';
         document.getElementById('resultCount').textContent = '';
         return;
@@ -423,7 +430,7 @@
 
       if (filtered.length === 0) {
         tbody.innerHTML =
-          '<tr class="state-row"><td colspan="7">' +
+          '<tr class="state-row"><td colspan="8">' +
           '<span class="icon">📭</span>조건에 맞는 예약이 없습니다.</td></tr>';
         count.textContent = '';
         return;
@@ -431,9 +438,10 @@
 
       tbody.innerHTML = filtered.map(function (r) {
         const status = r.status || '신규';
-        const menu    = r.menu || r.menu_preference || '—';
-        const people  = r.people || r.count || '—';
-        const resDate = [r.date, r.pickup].filter(Boolean).join(' ') || r.time || '—';
+        var menu    = r.menu || r.menu_preference || '—';
+        var people  = r.people || r.count || '—';
+        var resDate = [r.date, r.pickup].filter(Boolean).join(' ') || r.time || '—';
+        var noteVal = r.note || '';
         return (
           '<tr data-id="' + r.id + '">' +
           '<td class="cell-time">'  + esc(formatDatetime(r.created_at)) + '</td>' +
@@ -443,16 +451,30 @@
           '<td class="cell-time">'  + esc(String(resDate)) + '</td>' +
           '<td class="cell-count">' + esc(String(people)) + '</td>' +
           '<td>' + statusCell(r.id, status) + '</td>' +
+          '<td><input class="note-input" type="text" data-id="' + r.id + '" value="' + esc(noteVal) + '" placeholder="메모 입력…" /></td>' +
           '</tr>'
         );
       }).join('');
 
       count.textContent = '총 ' + filtered.length + '건 표시 중';
 
-      // 드롭다운 이벤트 위임
+      // 상태 드롭다운 이벤트
       tbody.querySelectorAll('.status-select').forEach(function (sel) {
         sel.addEventListener('change', function () {
           updateStatus(Number(this.dataset.id), this.value, this);
+        });
+      });
+
+      // 메모 입력창 이벤트 (포커스 아웃 시 저장)
+      tbody.querySelectorAll('.note-input').forEach(function (inp) {
+        var original = inp.value;
+        inp.addEventListener('blur', function () {
+          if (inp.value === original) return;
+          original = inp.value;
+          saveNote(Number(inp.dataset.id), inp.value, inp);
+        });
+        inp.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { inp.blur(); }
         });
       });
     }
@@ -486,12 +508,34 @@
         return;
       }
 
-      const row = allRows.find(function (r) { return r.id === id; });
+      var row = allRows.find(function (r) { return r.id === id; });
       if (row) row.status = newStatus;
 
       updateTodayBadge();
       renderTable();
       showToast('상태가 "' + newStatus + '"으로 변경되었습니다.');
+    }
+
+    async function saveNote(id, note, inputEl) {
+      inputEl.classList.add('saving');
+
+      var result = await sb
+        .from('reservations')
+        .update({ note: note })
+        .eq('id', id);
+
+      inputEl.classList.remove('saving');
+
+      if (result.error) {
+        showToast('메모 저장 실패: ' + result.error.message, true);
+        return;
+      }
+
+      var row = allRows.find(function (r) { return r.id === id; });
+      if (row) row.note = note;
+
+      inputEl.classList.add('saved');
+      setTimeout(function () { inputEl.classList.remove('saved'); }, 1500);
     }
 
     // ── 컬럼명 자동 감지 (DB 실제 컬럼에 맞게) ───────────────
@@ -508,7 +552,7 @@
     function setLoading(on) {
       if (on) {
         document.getElementById('tableBody').innerHTML =
-          '<tr class="state-row"><td colspan="7"><span class="icon">⏳</span>데이터를 불러오는 중…</td></tr>';
+          '<tr class="state-row"><td colspan="8"><span class="icon">⏳</span>데이터를 불러오는 중…</td></tr>';
         document.getElementById('resultCount').textContent = '';
       }
     }
@@ -558,7 +602,7 @@
         bindEvents();
       } catch (e) {
         document.getElementById('tableBody').innerHTML =
-          '<tr class="state-row"><td colspan="7"><span class="icon">⚠️</span>' +
+          '<tr class="state-row"><td colspan="8"><span class="icon">⚠️</span>' +
           '<strong style="color:#c0392b;">초기화 오류</strong><br>' +
           '<code style="font-size:12px;color:#64748b;">' + String(e) + '</code></td></tr>';
       }
