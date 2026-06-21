@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>모닝브루 — 메뉴 주문</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --espresso: #0F0A07;
+      --roast:    #1E140E;
+      --gold:     #C4973A;
+      --gold-lt:  #D9AE5A;
+      --cream:    #FAF8F5;
+      --cream-dk: #F0EAE1;
+      --ink:      #1C1108;
+      --ink-soft: #6B5A4E;
+      --line:     #E8DDD3;
+      --white:    #FFFFFF;
+      --red:      #E53935;
+      --pill:     999px;
+      --r-lg:     16px;
+      --r-sm:     10px;
+      --shadow-sm: 0 2px 12px rgba(15,10,7,.07);
+      --shadow-md: 0 8px 32px rgba(15,10,7,.14);
+      --shadow-lg: 0 20px 60px rgba(15,10,7,.2);
+      --ease: cubic-bezier(0.16,1,0.3,1);
+      --t: 0.22s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,10,7,.95);
+      backdrop-filter: blur(12px);
+      padding: 16px 0;
+      box-shadow: 0 1px 0 rgba(196,151,58,.15);
+    }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--white); }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { font-size: 13px; font-weight: 500; letter-spacing: .06em; color: rgba(255,255,255,.6); transition: color var(--t); }
+    .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+    .nav-cart-btn {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; letter-spacing: .04em;
+      color: var(--espresso); background: var(--gold);
+      padding: 9px 20px; border-radius: var(--pill); border: none; cursor: pointer;
+      transition: background var(--t);
+    }
+    .nav-cart-btn:hover { background: var(--gold-lt); }
+    #navCartCount {
+      display: none; min-width: 20px; height: 20px; border-radius: 50%;
+      background: var(--espresso); color: var(--gold);
+      font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; padding: 0 4px;
+    }
+    #navCartCount.show { display: inline-block; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--espresso); padding: 56px 0 48px;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=60');
+      background-size: cover; background-position: center;
+      opacity: .12;
+    }
+    .page-header-inner { position: relative; }
+    .page-header-label { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px); color: var(--white); }
+    .page-header h1 em { font-style: italic; color: var(--gold); }
+    .page-header-sub { margin-top: 12px; font-size: 14px; color: rgba(255,255,255,.5); }
+
+    /* ── LAYOUT ── */
+    .page-body { max-width: 1200px; margin: 0 auto; padding: 40px 24px 120px; display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
+
+    /* ── CATEGORY TABS ── */
+    .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .tab-btn {
+      font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: .06em;
+      padding: 8px 20px; border-radius: var(--pill); border: 1.5px solid var(--line);
+      background: var(--white); color: var(--ink-soft); cursor: pointer;
+      transition: all var(--t);
+    }
+    .tab-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .tab-btn.active { background: var(--espresso); color: var(--gold); border-color: var(--espresso); }
+
+    /* ── MENU GRID ── */
+    .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .menu-item {
+      background: var(--white); border-radius: var(--r-lg);
+      overflow: hidden; box-shadow: var(--shadow-sm);
+      transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+      display: flex; flex-direction: column;
+    }
+    .menu-item:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .menu-item.hidden { display: none; }
+    .menu-img { height: 160px; overflow: hidden; position: relative; }
+    .menu-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--ease); }
+    .menu-item:hover .menu-img img { transform: scale(1.06); }
+    .menu-badge {
+      position: absolute; top: 10px; left: 10px;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--espresso); background: var(--gold);
+      padding: 3px 10px; border-radius: var(--pill);
+    }
+    .menu-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .menu-name { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--ink); margin-bottom: 4px; }
+    .menu-desc { font-size: 12px; color: var(--ink-soft); line-height: 1.6; flex: 1; }
+    .menu-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .menu-price { font-size: 16px; font-weight: 700; color: var(--gold); }
+    .add-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+      background: var(--espresso); color: var(--gold);
+      font-size: 22px; line-height: 1; display: flex; align-items: center; justify-content: center;
+      transition: background var(--t), transform .2s var(--ease);
+    }
+    .add-btn:hover { background: var(--roast); transform: scale(1.12); }
+    .add-btn:active { transform: scale(0.95); }
+
+    /* ── CART PANEL ── */
+    .cart-panel {
+      background: var(--white); border-radius: var(--r-lg);
+      box-shadow: var(--shadow-md); position: sticky; top: 88px;
+      display: flex; flex-direction: column; max-height: calc(100vh - 120px);
+    }
+    .cart-header {
+      padding: 20px 24px 16px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cart-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--ink); }
+    .cart-count-badge {
+      font-size: 12px; font-weight: 700; color: var(--espresso);
+      background: var(--gold); padding: 3px 10px; border-radius: var(--pill);
+    }
+    .cart-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px; color: var(--ink-soft); gap: 12px;
+    }
+    .cart-empty-icon { font-size: 40px; opacity: .4; }
+    .cart-empty p { font-size: 13px; text-align: center; line-height: 1.6; }
+    .cart-items { flex: 1; overflow-y: auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+    .cart-item { display: flex; gap: 12px; align-items: flex-start; }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+    .cart-item-price { font-size: 13px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+    .cart-item-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line);
+      background: var(--cream); cursor: pointer; font-size: 16px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color var(--t), background var(--t);
+    }
+    .qty-btn:hover { border-color: var(--gold); background: rgba(196,151,58,.08); }
+    .qty-num { font-size: 14px; font-weight: 700; min-width: 20px; text-align: center; }
+    .remove-btn { background: none; border: none; cursor: pointer; color: var(--ink-soft); font-size: 14px; padding: 2px 4px; opacity: .5; transition: opacity var(--t); }
+    .remove-btn:hover { opacity: 1; color: var(--red); }
+    .cart-footer { padding: 16px 24px 20px; border-top: 1px solid var(--line); }
+    .cart-subtotal { display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .cart-subtotal span { font-size: 13px; color: var(--ink-soft); }
+    .cart-subtotal strong { font-size: 18px; font-weight: 700; color: var(--ink); }
+    .checkout-btn {
+      width: 100%; padding: 15px; border: none; border-radius: var(--pill);
+      font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: .04em;
+      color: var(--espresso); background: var(--gold); cursor: pointer;
+      transition: background var(--t), box-shadow var(--t);
+      box-shadow: 0 6px 20px rgba(196,151,58,.3);
+    }
+    .checkout-btn:hover { background: var(--gold-lt); box-shadow: 0 10px 28px rgba(196,151,58,.4); }
+    .checkout-btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+
+    /* ── MOBILE CART FLOAT ── */
+    .cart-float {
+      display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 40; white-space: nowrap;
+    }
+    .cart-float-btn {
+      display: flex; align-items: center; gap: 12px;
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      color: var(--espresso); background: var(--gold);
+      padding: 14px 28px; border-radius: var(--pill); border: none; cursor: pointer;
+      box-shadow: 0 8px 32px rgba(196,151,58,.45);
+    }
+    .cart-float-total { font-size: 13px; opacity: .7; }
+
+    /* ── CHECKOUT MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(15,10,7,.7); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--white); border-radius: 24px 24px 0 0;
+      width: 100%; max-width: 560px;
+      max-height: 92vh; overflow-y: auto;
+      transform: translateY(40px);
+      transition: transform .4s var(--ease);
+      padding-bottom: 32px;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 16px auto 0; }
+    .modal-header { padding: 20px 28px 0; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; }
+    .modal-close { background: var(--cream); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background var(--t); }
+    .modal-close:hover { background: var(--cream-dk); }
+
+    /* step indicators */
+    .step-bar { display: flex; align-items: center; gap: 0; padding: 20px 28px 0; }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--ink-soft);
+      transition: all .3s ease; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--gold); background: var(--gold); color: var(--espresso); }
+    .step-dot.done { border-color: var(--gold); background: var(--gold); color: var(--espresso); }
+    .step-line { flex: 1; height: 2px; background: var(--line); transition: background .3s ease; }
+    .step-line.done { background: var(--gold); }
+    .step-label { font-size: 11px; color: var(--ink-soft); text-align: center; margin-top: 6px; }
+    .step-labels { display: flex; justify-content: space-between; padding: 0 14px; }
+    .step-labels span { font-size: 10px; color: var(--ink-soft); width: 64px; text-align: center; }
+    .step-labels span.active { color: var(--gold); font-weight: 700; }
+
+    .modal-body { padding: 24px 28px 0; }
+
+    /* step panels */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* step 1 - cart review */
+    .modal-cart-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--cream-dk); }
+    .modal-cart-item:last-child { border-bottom: none; }
+    .mci-name { flex: 1; font-size: 14px; font-weight: 500; }
+    .mci-qty { font-size: 13px; color: var(--ink-soft); }
+    .mci-price { font-size: 14px; font-weight: 700; color: var(--gold); min-width: 64px; text-align: right; }
+    .modal-total { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1.5px solid var(--line); }
+    .modal-total-label { font-size: 13px; color: var(--ink-soft); }
+    .modal-total-price { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--ink); }
+
+    /* step 2 - pickup info */
+    .form-section-title { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 16px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .field label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+    .field input, .field select {
+      font-family: inherit; font-size: 14px; color: var(--ink);
+      padding: 12px 14px; border: 1.5px solid var(--line);
+      border-radius: var(--r-sm); background: var(--cream);
+      transition: border-color var(--t), box-shadow var(--t); appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      outline: none; border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(196,151,58,.12); background: var(--white);
+    }
+
+    /* step 3 - payment */
+    .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .pay-method {
+      border: 2px solid var(--line); border-radius: var(--r-sm); padding: 16px;
+      cursor: pointer; transition: all .2s ease; text-align: center;
+      background: var(--white);
+    }
+    .pay-method:hover { border-color: var(--gold); }
+    .pay-method.selected { border-color: var(--gold); background: rgba(196,151,58,.06); }
+    .pay-method input { display: none; }
+    .pay-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+    .pay-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .pay-sub { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+    .pay-summary { background: var(--cream); border-radius: var(--r-sm); padding: 16px; }
+    .pay-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+    .pay-row:last-child { margin-bottom: 0; padding-top: 8px; border-top: 1px solid var(--line); }
+    .pay-row.total { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+    /* modal footer */
+    .modal-footer { padding: 20px 28px 0; display: flex; gap: 10px; }
+    .btn-back {
+      padding: 14px 24px; border-radius: var(--pill); border: 1.5px solid var(--line);
+      background: var(--white); font-family: inherit; font-size: 14px; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; transition: border-color var(--t), color var(--t);
+    }
+    .btn-back:hover { border-color: var(--ink-soft); color: var(--ink); }
+    .btn-next {
+      flex: 1; padding: 14px; border-radius: var(--pill); border: none;
+      background: var(--espresso); font-family: inherit; font-size: 15px; font-weight: 700;
+      color: var(--white); cursor: pointer; transition: background var(--t), box-shadow var(--t);
+      box-shadow: 0 6px 20px rgba(15,10,7,.25);
+    }
+    .btn-next:hover { background: var(--roast); box-shadow: 0 10px 28px rgba(15,10,7,.35); }
+    .btn-pay {
+      flex: 1; padding: 14px; border-radius: var(--pill); border: none;
+      background: var(--gold); font-family: inherit; font-size: 15px; font-weight: 700;
+      color: var(--espresso); cursor: pointer; transition: background var(--t), box-shadow var(--t);
+      box-shadow: 0 6px 20px rgba(196,151,58,.3);
+    }
+    .btn-pay:hover { background: var(--gold-lt); box-shadow: 0 10px 28px rgba(196,151,58,.4); }
+
+    /* ── SUCCESS SCREEN ── */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: var(--espresso);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s ease;
+    }
+    .success-overlay.open { opacity: 1; pointer-events: all; }
+    .success-box { text-align: center; padding: 40px 32px; max-width: 420px; width: 100%; }
+    .success-icon { font-size: 64px; margin-bottom: 24px; animation: popIn .5s var(--ease) .2s both; }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-title { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--white); margin-bottom: 8px; }
+    .success-title em { font-style: italic; color: var(--gold); }
+    .success-sub { font-size: 14px; color: rgba(255,255,255,.5); margin-bottom: 32px; line-height: 1.7; }
+    .success-order-num { display: inline-block; font-size: 18px; font-weight: 700; color: var(--gold); letter-spacing: .1em; background: rgba(196,151,58,.1); border: 1px solid rgba(196,151,58,.3); padding: 10px 28px; border-radius: var(--pill); margin-bottom: 32px; }
+    .success-items { background: rgba(255,255,255,.05); border-radius: var(--r-sm); padding: 16px 20px; margin-bottom: 28px; text-align: left; }
+    .success-item-row { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,.6); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .success-item-row:last-child { border-bottom: none; color: rgba(255,255,255,.9); font-weight: 700; }
+    .pickup-info { font-size: 13px; color: rgba(255,255,255,.4); margin-bottom: 28px; }
+    .pickup-info strong { color: var(--gold-lt); }
+    .btn-done {
+      padding: 14px 40px; border-radius: var(--pill); border: none;
+      background: var(--gold); font-family: inherit; font-size: 15px; font-weight: 700;
+      color: var(--espresso); cursor: pointer;
+      transition: background var(--t); display: inline-block;
+    }
+    .btn-done:hover { background: var(--gold-lt); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .page-body { grid-template-columns: 1fr; }
+      .cart-panel { display: none; }
+      .cart-float { display: block; }
+      .menu-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      .pay-methods { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+    }
+
+    /* add-to-cart bounce */
+    @keyframes cartBounce { 0%,100% { transform: scale(1); } 40% { transform: scale(.88); } 70% { transform: scale(1.12); } }
+    .cart-bounce { animation: cartBounce .4s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html">Morning<span>Brew</span></a>
+      <div class="nav-links">
+        <a href="index.html">홈</a>
+        <a href="index.html#about">스토리</a>
+        <a href="order.html" class="active">메뉴 주문</a>
+        <a href="index.html#reserve">테이크아웃 예약</a>
+      </div>
+      <button class="nav-cart-btn" onclick="openCheckout()">
+        🛒 장바구니 <span id="navCartCount">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-header-label">Order</div>
+      <h1>메뉴 <em>주문</em></h1>
+      <p class="page-header-sub">담으신 후 결제 화면에서 픽업 시간을 선택해 주세요</p>
+    </div>
+  </div>
+
+  <!-- PAGE BODY -->
+  <div class="page-body">
+
+    <!-- LEFT: MENU -->
+    <div>
+      <!-- Category Tabs -->
+      <div class="category-tabs">
+        <button class="tab-btn active" data-cat="all">전체</button>
+        <button class="tab-btn" data-cat="drip">드립 커피</button>
+        <button class="tab-btn" data-cat="espresso">에스프레소</button>
+        <button class="tab-btn" data-cat="nonCoffee">논커피</button>
+        <button class="tab-btn" data-cat="bakery">베이커리</button>
+      </div>
+
+      <!-- Menu Grid -->
+      <div class="menu-grid" id="menuGrid">
+
+        <div class="menu-item" data-cat="drip" data-id="1" data-name="핸드드립 커피" data-price="5500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=400&q=75" alt="핸드드립 커피" loading="lazy" />
+            <span class="menu-badge">Signature</span>
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">핸드드립 커피</div>
+            <div class="menu-desc">매일 직접 로스팅한 원두로 드리퍼에 한 잔씩 내립니다</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩5,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="drip" data-id="2" data-name="오늘의 원두" data-price="4500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=400&q=75" alt="오늘의 원두" loading="lazy" />
+            <span class="menu-badge">Daily</span>
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">오늘의 원두</div>
+            <div class="menu-desc">날마다 달라지는 로스팅 원두 한 잔</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩4,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="espresso" data-id="3" data-name="에스프레소" data-price="3500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=400&q=75" alt="에스프레소" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">에스프레소</div>
+            <div class="menu-desc">진하고 묵직한 싱글 샷</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩3,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="espresso" data-id="4" data-name="아메리카노" data-price="4000">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=400&q=75" alt="아메리카노" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">아메리카노</div>
+            <div class="menu-desc">에스프레소에 물을 더해 부드럽게. 아이스 가능</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩4,000</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="espresso" data-id="5" data-name="카페라떼" data-price="5000">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1561047029-3000c68339ca?auto=format&fit=crop&w=400&q=75" alt="카페라떼" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">카페라떼</div>
+            <div class="menu-desc">에스프레소와 스팀 밀크의 부드러운 조화. 아이스 가능</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩5,000</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="espresso" data-id="6" data-name="플랫화이트" data-price="5500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=400&q=75" alt="플랫화이트" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">플랫화이트</div>
+            <div class="menu-desc">리스트레토에 마이크로폼 밀크. 진하고 고소하게</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩5,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="nonCoffee" data-id="7" data-name="콜드브루" data-price="5000">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=400&q=75" alt="콜드브루" loading="lazy" />
+            <span class="menu-badge">Cold</span>
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">콜드브루</div>
+            <div class="menu-desc">12시간 저온 추출. 달고 부드러운 깊은 맛</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩5,000</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="nonCoffee" data-id="8" data-name="계절 과일 에이드" data-price="6000">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1499638673689-79a0b0832c2?auto=format&fit=crop&w=400&q=75" alt="계절 과일 에이드" loading="lazy" />
+            <span class="menu-badge">Season</span>
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">계절 과일 에이드</div>
+            <div class="menu-desc">제철 과일로 매일 만드는 스파클링 에이드</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩6,000</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="nonCoffee" data-id="9" data-name="얼그레이 밀크티" data-price="5500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=400&q=75" alt="얼그레이 밀크티" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">얼그레이 밀크티</div>
+            <div class="menu-desc">향긋한 얼그레이와 오트밀크의 부드러운 블렌딩</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩5,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="bakery" data-id="10" data-name="수제 스콘" data-price="3500">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=400&q=75" alt="수제 스콘" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">수제 스콘</div>
+            <div class="menu-desc">당일 구운 버터 스콘. 클로티드 크림 제공</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩3,500</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-item" data-cat="bakery" data-id="11" data-name="바나나 브레드" data-price="4000">
+          <div class="menu-img">
+            <img src="https://images.unsplash.com/photo-1481391319762-47dff72954d9?auto=format&fit=crop&w=400&q=75" alt="바나나 브레드" loading="lazy" />
+          </div>
+          <div class="menu-body">
+            <div class="menu-name">바나나 브레드</div>
+            <div class="menu-desc">매일 아침 구운 촉촉한 홈메이드 바나나 브레드</div>
+            <div class="menu-footer">
+              <div class="menu-price">₩4,000</div>
+              <button class="add-btn" onclick="addToCart(this)">+</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: CART PANEL -->
+    <div class="cart-panel" id="cartPanel">
+      <div class="cart-header">
+        <div class="cart-title">장바구니</div>
+        <span class="cart-count-badge" id="cartCountBadge">0개</span>
+      </div>
+      <div class="cart-empty" id="cartEmpty">
+        <div class="cart-empty-icon">☕</div>
+        <p>아직 담은 메뉴가 없어요.<br>원하시는 메뉴를 골라보세요.</p>
+      </div>
+      <div class="cart-items" id="cartItems" style="display:none;"></div>
+      <div class="cart-footer" id="cartFooter" style="display:none;">
+        <div class="cart-subtotal">
+          <span>합계</span>
+          <strong id="cartTotal">₩0</strong>
+        </div>
+        <button class="checkout-btn" onclick="openCheckout()">결제하기 →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MOBILE CART FLOAT -->
+  <div class="cart-float" id="cartFloat" style="display:none;">
+    <button class="cart-float-btn" onclick="openCheckout()">
+      🛒 <span id="floatCount">0개</span>
+      <span class="cart-float-total" id="floatTotal">₩0</span>
+      <span>→ 결제</span>
+    </button>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal" id="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">주문 확인</div>
+        <button class="modal-close" onclick="closeCheckout()">✕</button>
+      </div>
+
+      <!-- Step Bar -->
+      <div class="step-bar">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-dot" id="dot2">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-dot" id="dot3">3</div>
+      </div>
+      <div class="step-labels">
+        <span class="active" id="lbl1">확인</span>
+        <span id="lbl2">픽업 정보</span>
+        <span id="lbl3">결제</span>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Step 1: Cart Review -->
+        <div class="step-panel active" id="step1">
+          <div id="modalCartList"></div>
+          <div class="modal-total">
+            <span class="modal-total-label">총 결제 금액</span>
+            <span class="modal-total-price" id="modalTotalPrice">₩0</span>
+          </div>
+        </div>
+
+        <!-- Step 2: Pickup Info -->
+        <div class="step-panel" id="step2">
+          <div class="form-section-title">픽업 정보</div>
+          <div class="field-row">
+            <div class="field">
+              <label>이름</label>
+              <input type="text" id="oName" placeholder="홍길동" />
+            </div>
+            <div class="field">
+              <label>연락처</label>
+              <input type="tel" id="oPhone" placeholder="010-0000-0000" inputmode="tel" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>픽업 날짜</label>
+              <input type="date" id="oDate" />
+            </div>
+            <div class="field">
+              <label>픽업 시간</label>
+              <input type="time" id="oTime" />
+            </div>
+          </div>
+          <div class="field">
+            <label>요청사항 (선택)</label>
+            <input type="text" id="oNote" placeholder="얼음 적게, 빨대 없이 등" />
+          </div>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="step-panel" id="step3">
+          <div class="form-section-title" style="margin-bottom:12px;">결제 수단 선택</div>
+          <div class="pay-methods">
+            <label class="pay-method selected" onclick="selectPay(this)">
+              <input type="radio" name="pay" value="card" checked />
+              <span class="pay-icon">💳</span>
+              <div class="pay-name">신용·체크카드</div>
+              <div class="pay-sub">국내외 모든 카드</div>
+            </label>
+            <label class="pay-method" onclick="selectPay(this)">
+              <input type="radio" name="pay" value="kakao" />
+              <span class="pay-icon">💛</span>
+              <div class="pay-name">카카오페이</div>
+              <div class="pay-sub">간편결제</div>
+            </label>
+            <label class="pay-method" onclick="selectPay(this)">
+              <input type="radio" name="pay" value="naver" />
+              <span class="pay-icon">💚</span>
+              <div class="pay-name">네이버페이</div>
+              <div class="pay-sub">간편결제</div>
+            </label>
+            <label class="pay-method" onclick="selectPay(this)">
+              <input type="radio" name="pay" value="toss" />
+              <span class="pay-icon">💙</span>
+              <div class="pay-name">토스페이</div>
+              <div class="pay-sub">간편결제</div>
+            </label>
+          </div>
+          <div class="pay-summary" id="paySummary"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer" id="modalFooter">
+        <button class="btn-next" id="btnNext" onclick="nextStep()">다음 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS OVERLAY -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+      <div class="success-icon">✅</div>
+      <h2 class="success-title">주문 <em>완료</em></h2>
+      <p class="success-sub">결제가 완료되었습니다.<br>픽업 전날 연락드리겠습니다.</p>
+      <div class="success-order-num" id="successOrderNum"></div>
+      <div class="success-items" id="successItems"></div>
+      <div class="pickup-info" id="successPickup"></div>
+      <button class="btn-done" onclick="resetAll()">처음으로 돌아가기</button>
+    </div>
+  </div>
+
+  <script>
+    /* ── CART STATE ── */
+    var cart = {};
+
+    var MENU = {
+      1:  { name: '핸드드립 커피',    price: 5500 },
+      2:  { name: '오늘의 원두',      price: 4500 },
+      3:  { name: '에스프레소',       price: 3500 },
+      4:  { name: '아메리카노',       price: 4000 },
+      5:  { name: '카페라떼',         price: 5000 },
+      6:  { name: '플랫화이트',       price: 5500 },
+      7:  { name: '콜드브루',         price: 5000 },
+      8:  { name: '계절 과일 에이드', price: 6000 },
+      9:  { name: '얼그레이 밀크티',  price: 5500 },
+      10: { name: '수제 스콘',        price: 3500 },
+      11: { name: '바나나 브레드',    price: 4000 },
+    };
+
+    /* ── ADD TO CART ── */
+    function addToCart(btn) {
+      var item = btn.closest('.menu-item');
+      var id   = item.dataset.id;
+      if (cart[id]) { cart[id].qty++; }
+      else { cart[id] = { name: MENU[id].name, price: MENU[id].price, qty: 1 }; }
+      renderCart();
+      // bounce animation
+      btn.classList.remove('cart-bounce');
+      void btn.offsetWidth;
+      btn.classList.add('cart-bounce');
+    }
+
+    /* ── CART RENDER ── */
+    function renderCart() {
+      var keys  = Object.keys(cart);
+      var total = getTotal();
+      var count = getCount();
+
+      // side panel
+      var empty  = document.getElementById('cartEmpty');
+      var items  = document.getElementById('cartItems');
+      var footer = document.getElementById('cartFooter');
+      var badge  = document.getElementById('cartCountBadge');
+
+      if (keys.length === 0) {
+        empty.style.display  = 'flex';
+        items.style.display  = 'none';
+        footer.style.display = 'none';
+      } else {
+        empty.style.display  = 'none';
+        items.style.display  = 'flex';
+        footer.style.display = 'block';
+        items.innerHTML = keys.map(function(id) {
+          var c = cart[id];
+          return '<div class="cart-item">' +
+            '<div class="cart-item-info">' +
+              '<div class="cart-item-name">' + c.name + '</div>' +
+              '<div class="cart-item-price">₩' + fmt(c.price * c.qty) + '</div>' +
+            '</div>' +
+            '<div class="cart-item-controls">' +
+              '<button class="qty-btn" onclick="updateQty(' + id + ',-1)">−</button>' +
+              '<span class="qty-num">' + c.qty + '</span>' +
+              '<button class="qty-btn" onclick="updateQty(' + id + ',1)">+</button>' +
+              '<button class="remove-btn" onclick="removeItem(' + id + ')">✕</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        document.getElementById('cartTotal').textContent = '₩' + fmt(total);
+      }
+
+      badge.textContent = count + '개';
+
+      // nav count
+      var navCount = document.getElementById('navCartCount');
+      navCount.textContent = count;
+      navCount.classList.toggle('show', count > 0);
+
+      // mobile float
+      var float = document.getElementById('cartFloat');
+      if (count > 0 && window.innerWidth <= 900) {
+        float.style.display = 'block';
+        document.getElementById('floatCount').textContent = count + '개';
+        document.getElementById('floatTotal').textContent = '₩' + fmt(total);
+      } else {
+        float.style.display = 'none';
+      }
+    }
+
+    function updateQty(id, delta) {
+      if (!cart[id]) return;
+      cart[id].qty += delta;
+      if (cart[id].qty <= 0) delete cart[id];
+      renderCart();
+    }
+    function removeItem(id) { delete cart[id]; renderCart(); }
+    function getTotal() { return Object.values(cart).reduce(function(s,c) { return s + c.price * c.qty; }, 0); }
+    function getCount() { return Object.values(cart).reduce(function(s,c) { return s + c.qty; }, 0); }
+    function fmt(n)     { return n.toLocaleString('ko-KR'); }
+
+    /* ── CATEGORY TABS ── */
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var cat = btn.dataset.cat;
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+          item.classList.toggle('hidden', cat !== 'all' && item.dataset.cat !== cat);
+        });
+      });
+    });
+
+    /* ── CHECKOUT MODAL ── */
+    var currentStep = 1;
+
+    function openCheckout() {
+      if (getCount() === 0) { alert('메뉴를 먼저 담아주세요.'); return; }
+      currentStep = 1;
+      renderStep();
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeCheckout() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeCheckout();
+    }
+
+    function renderStep() {
+      var titles = ['', '주문 확인', '픽업 정보', '결제'];
+      document.getElementById('modalTitle').textContent = titles[currentStep];
+
+      // step panels
+      for (var i = 1; i <= 3; i++) {
+        document.getElementById('step' + i).classList.toggle('active', i === currentStep);
+      }
+
+      // step bar
+      for (var i = 1; i <= 3; i++) {
+        var dot = document.getElementById('dot' + i);
+        var lbl = document.getElementById('lbl' + i);
+        dot.classList.remove('active', 'done');
+        lbl.classList.remove('active');
+        if (i < currentStep)       { dot.classList.add('done'); dot.textContent = '✓'; }
+        else if (i === currentStep) { dot.classList.add('active'); dot.textContent = i; lbl.classList.add('active'); }
+        else                        { dot.textContent = i; }
+      }
+      for (var i = 1; i <= 2; i++) {
+        document.getElementById('line' + i).classList.toggle('done', i < currentStep);
+      }
+
+      // footer buttons
+      var footer = document.getElementById('modalFooter');
+      if (currentStep === 1) {
+        footer.innerHTML = '<button class="btn-next" onclick="nextStep()">픽업 정보 입력 →</button>';
+        renderModalCart();
+      } else if (currentStep === 2) {
+        footer.innerHTML = '<button class="btn-back" onclick="prevStep()">← 뒤로</button><button class="btn-next" onclick="nextStep()">결제 수단 →</button>';
+      } else if (currentStep === 3) {
+        renderPaySummary();
+        footer.innerHTML = '<button class="btn-back" onclick="prevStep()">← 뒤로</button><button class="btn-pay" onclick="doPayment()">결제하기 💳</button>';
+      }
+    }
+
+    function nextStep() {
+      if (currentStep === 2) {
+        var name = document.getElementById('oName').value.trim();
+        var phone = document.getElementById('oPhone').value.trim();
+        var date  = document.getElementById('oDate').value;
+        var time  = document.getElementById('oTime').value;
+        if (!name)  { alert('이름을 입력해 주세요.'); return; }
+        if (!phone) { alert('연락처를 입력해 주세요.'); return; }
+        if (!date)  { alert('픽업 날짜를 선택해 주세요.'); return; }
+        if (!time)  { alert('픽업 시간을 선택해 주세요.'); return; }
+      }
+      if (currentStep < 3) { currentStep++; renderStep(); }
+    }
+    function prevStep() { if (currentStep > 1) { currentStep--; renderStep(); } }
+
+    function renderModalCart() {
+      var keys = Object.keys(cart);
+      document.getElementById('modalCartList').innerHTML =
+        keys.map(function(id) {
+          var c = cart[id];
+          return '<div class="modal-cart-item">' +
+            '<div class="mci-name">' + c.name + '</div>' +
+            '<div class="mci-qty">× ' + c.qty + '</div>' +
+            '<div class="mci-price">₩' + fmt(c.price * c.qty) + '</div>' +
+          '</div>';
+        }).join('');
+      document.getElementById('modalTotalPrice').textContent = '₩' + fmt(getTotal());
+    }
+
+    function selectPay(el) {
+      document.querySelectorAll('.pay-method').forEach(function(m) { m.classList.remove('selected'); });
+      el.classList.add('selected');
+    }
+
+    function renderPaySummary() {
+      var total = getTotal();
+      var discount = 0;
+      document.getElementById('paySummary').innerHTML =
+        '<div class="pay-row"><span>상품 합계</span><span>₩' + fmt(total) + '</span></div>' +
+        '<div class="pay-row"><span>포장 용기</span><span>₩0</span></div>' +
+        '<div class="pay-row total"><span>최종 결제</span><span>₩' + fmt(total) + '</span></div>';
+    }
+
+    /* ── PAYMENT ── */
+    function doPayment() {
+      closeCheckout();
+      // generate order number
+      var num = 'MB-' + Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('successOrderNum').textContent = '주문번호 ' + num;
+
+      // build item list + total row
+      var keys = Object.keys(cart);
+      var rows = keys.map(function(id) {
+        var c = cart[id];
+        return '<div class="success-item-row"><span>' + c.name + ' × ' + c.qty + '</span><span>₩' + fmt(c.price * c.qty) + '</span></div>';
+      }).join('');
+      rows += '<div class="success-item-row"><span>합계</span><span>₩' + fmt(getTotal()) + '</span></div>';
+      document.getElementById('successItems').innerHTML = rows;
+
+      // pickup info
+      var date = document.getElementById('oDate').value;
+      var time = document.getElementById('oTime').value;
+      var name = document.getElementById('oName').value.trim();
+      document.getElementById('successPickup').innerHTML =
+        '<strong>' + name + '</strong>님 · 픽업 예정 <strong>' + date + ' ' + time + '</strong>';
+
+      document.getElementById('successOverlay').classList.add('open');
+    }
+
+    /* ── RESET ── */
+    function resetAll() {
+      cart = {};
+      renderCart();
+      document.getElementById('successOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+      currentStep = 1;
+    }
+
+    /* ── MOBILE FLOAT VISIBILITY ── */
+    window.addEventListener('resize', renderCart);
+  </script>
+</body>
+</html>
