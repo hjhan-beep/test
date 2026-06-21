@@ -320,6 +320,9 @@
 
   <div id="toast" class="toast"></div>
 
+  <!-- 임시 디버그 패널 -->
+  <div id="debugPanel" style="margin:20px;padding:16px;background:#1e293b;color:#7dd3fc;font-family:monospace;font-size:13px;border-radius:8px;white-space:pre-wrap;display:none;"></div>
+
   <script>
     // ── 접근 보호 ──────────────────────────────────────────────
     (function () {
@@ -371,12 +374,27 @@
     }
 
     // ── 데이터 조회 ───────────────────────────────────────────
+    function debug(msg) {
+      const p = document.getElementById('debugPanel');
+      p.style.display = 'block';
+      p.textContent += msg + '\n';
+    }
+
     async function fetchData() {
       setLoading(true);
+      debug('▶ fetchData 시작');
+      debug('  supabase 객체: ' + (typeof window.supabase));
+      debug('  sb 클라이언트: ' + (typeof sb));
+
       const { data, error } = await sb
         .from('reservations')
         .select('*')
         .order('created_at', { ascending: false });
+
+      debug('▶ 쿼리 완료');
+      debug('  error: ' + JSON.stringify(error));
+      debug('  data 건수: ' + (data ? data.length : 'null'));
+      if (data && data.length > 0) debug('  첫 행 키: ' + Object.keys(data[0]).join(', '));
 
       if (error) {
         document.getElementById('tableBody').innerHTML =
