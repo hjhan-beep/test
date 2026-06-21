@@ -592,7 +592,7 @@
       // Supabase INSERT
       const { error } = await sbClient
         .from('reservations')
-        .insert([{ name, phone, menu, time, people, pickup }]);
+        .insert([{ name, phone, menu, date: time, people, pickup }]);
 
       submitBtn.disabled = false;
       submitBtn.textContent = '🥡 테이크아웃 예약하기';
