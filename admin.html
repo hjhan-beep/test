@@ -400,8 +400,8 @@
     function updateTodayBadge() {
       const todayStr = new Date().toISOString().slice(0, 10);
       const count = allRows.filter(function (r) {
-        return (r.status === '신규' || !r.status) &&
-               r.created_at && r.created_at.startsWith(todayStr);
+        const s = r.status || '신규';
+        return s === '신규' && r.created_at && r.created_at.startsWith(todayStr);
       }).length;
       document.getElementById('todayBadge').textContent = '오늘 신규 예약: ' + count + '건';
     }
@@ -409,7 +409,7 @@
     // ── 테이블 렌더링 ─────────────────────────────────────────
     function renderTable() {
       const filtered = allRows.filter(function (r) {
-        const status = r.status || '신규';
+        const status = r.status || '신규';  // DB에 status 컬럼 없으면 신규 처리
         const matchFilter = currentFilter === '전체' || status === currentFilter;
         const keyword = currentSearch;
         const nameVal  = (r.name  || '').toLowerCase();
@@ -433,17 +433,17 @@
 
       tbody.innerHTML = filtered.map(function (r) {
         const status = r.status || '신규';
-        const menu  = getField(r, ['menu_preference', 'menu']);
-        const count = getField(r, ['count', 'people']);
-        const time  = getField(r, ['time', 'date', 'pickup']);
+        const menu    = r.menu || r.menu_preference || '—';
+        const people  = r.people || r.count || '—';
+        const resDate = [r.date, r.pickup].filter(Boolean).join(' ') || r.time || '—';
         return (
           '<tr data-id="' + r.id + '">' +
           '<td class="cell-time">'  + esc(formatDatetime(r.created_at)) + '</td>' +
           '<td class="cell-name">'  + esc(r.name || '—') + '</td>' +
           '<td class="cell-phone">' + esc(r.phone || '—') + '</td>' +
           '<td class="cell-menu">'  + esc(String(menu)) + '</td>' +
-          '<td class="cell-time">'  + esc(String(time)) + '</td>' +
-          '<td class="cell-count">' + esc(String(count)) + '</td>' +
+          '<td class="cell-time">'  + esc(String(resDate)) + '</td>' +
+          '<td class="cell-count">' + esc(String(people)) + '</td>' +
           '<td>' + statusCell(r.id, status) + '</td>' +
           '</tr>'
         );
