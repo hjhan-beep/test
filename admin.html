@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -374,12 +375,19 @@
       setLoading(true);
       const { data, error } = await sb
         .from('reservations')
-        .select('id, name, phone, menu_preference, time, count, status, created_at')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        showToast('데이터 로드 실패: ' + error.message, true);
-        setLoading(false);
+        document.getElementById('tableBody').innerHTML =
+          '<tr class="state-row"><td colspan="7">' +
+          '<span class="icon">⚠️</span>' +
+          '<strong style="color:#c0392b;">데이터 로드 실패</strong><br>' +
+          '<code style="font-size:12px;color:#64748b;">' + esc(error.message) + '</code><br><br>' +
+          '<span style="font-size:13px;color:#64748b;">Supabase 대시보드 → Authentication → Policies → reservations 테이블에<br>' +
+          'SELECT 정책(anon 허용)이 있는지 확인하세요.</span>' +
+          '</td></tr>';
+        document.getElementById('resultCount').textContent = '';
         return;
       }
 
@@ -404,9 +412,11 @@
         const status = r.status || '신규';
         const matchFilter = currentFilter === '전체' || status === currentFilter;
         const keyword = currentSearch;
+        const nameVal  = (r.name  || '').toLowerCase();
+        const phoneVal = (r.phone || '').toLowerCase();
         const matchSearch = !keyword ||
-          (r.name && r.name.toLowerCase().includes(keyword)) ||
-          (r.phone && r.phone.toLowerCase().includes(keyword));
+          nameVal.includes(keyword) ||
+          phoneVal.includes(keyword);
         return matchFilter && matchSearch;
       });
 
@@ -423,14 +433,17 @@
 
       tbody.innerHTML = filtered.map(function (r) {
         const status = r.status || '신규';
+        const menu  = getField(r, ['menu_preference', 'menu']);
+        const count = getField(r, ['count', 'people']);
+        const time  = getField(r, ['time', 'date', 'pickup']);
         return (
           '<tr data-id="' + r.id + '">' +
           '<td class="cell-time">'  + esc(formatDatetime(r.created_at)) + '</td>' +
           '<td class="cell-name">'  + esc(r.name || '—') + '</td>' +
           '<td class="cell-phone">' + esc(r.phone || '—') + '</td>' +
-          '<td class="cell-menu">'  + esc(r.menu_preference || '—') + '</td>' +
-          '<td class="cell-time">'  + esc(r.time || '—') + '</td>' +
-          '<td class="cell-count">' + esc(String(r.count || '—')) + '</td>' +
+          '<td class="cell-menu">'  + esc(String(menu)) + '</td>' +
+          '<td class="cell-time">'  + esc(String(time)) + '</td>' +
+          '<td class="cell-count">' + esc(String(count)) + '</td>' +
           '<td>' + statusCell(r.id, status) + '</td>' +
           '</tr>'
         );
@@ -481,6 +494,16 @@
       updateTodayBadge();
       renderTable();
       showToast('상태가 "' + newStatus + '"으로 변경되었습니다.');
+    }
+
+    // ── 컬럼명 자동 감지 (DB 실제 컬럼에 맞게) ───────────────
+    function getField(r, candidates) {
+      for (var i = 0; i < candidates.length; i++) {
+        if (r[candidates[i]] !== undefined && r[candidates[i]] !== null) {
+          return r[candidates[i]];
+        }
+      }
+      return '—';
     }
 
     // ── 유틸 ──────────────────────────────────────────────────
