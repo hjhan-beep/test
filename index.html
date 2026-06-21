@@ -7,7 +7,6 @@
   <title>연남동 직접 로스팅 카페 모닝브루 | 출근 전 테이크아웃 예약</title>
   <meta name="description" content="서울 연남동 직접 로스팅 카페 모닝브루. 테이크아웃 예약으로 줄 없이 갓 내린 한 잔을 받아가세요. 매일 직접 로스팅한 원두로 내린 핸드드립과 당일 구운 수제 스콘. 지금 바로 예약하세요." />
 
-  <!-- 공유 미리보기 -->
   <meta property="og:title" content="연남동 직접 로스팅 카페 모닝브루 | 테이크아웃 예약" />
   <meta property="og:description" content="직접 로스팅한 원두로 내린 핸드드립 커피. 테이크아웃 예약으로 줄 없이 받아가세요. 연남동 모닝브루." />
   <meta property="og:type" content="website" />
@@ -43,7 +42,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     :root {
@@ -58,233 +56,128 @@
       --accent-strong: #c9761c;
       --danger: #c0392b;
       --shadow: 0 10px 30px rgba(90, 60, 35, 0.10);
-
       --radius: 18px;
       --radius-md: 14px;
       --radius-sm: 12px;
       --pill: 999px;
-
-      --space-1: 6px;
-      --space-2: 10px;
-      --space-3: 14px;
-      --space-4: 20px;
-      --space-5: 28px;
-      --space-6: 52px;
-
+      --space-1: 6px; --space-2: 10px; --space-3: 14px;
+      --space-4: 20px; --space-5: 28px; --space-6: 52px;
       --focus-ring: 0 0 0 3px rgba(224, 139, 45, 0.15);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-
     body {
       font-family: 'Noto Sans KR', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
+      background: var(--bg); color: var(--ink);
+      line-height: 1.65; -webkit-font-smoothing: antialiased;
       padding-bottom: 76px;
     }
-
     .wrap { width: 100%; max-width: 920px; margin: 0 auto; padding: 0 20px; }
-
     h1, h2, h3, .serif { font-family: 'Noto Sans KR', sans-serif; }
 
-    /* ===== HERO ===== */
+    /* HERO */
     .hero {
-      position: relative;
-      text-align: center;
+      position: relative; text-align: center;
       padding: 78px 20px 64px;
       background: radial-gradient(120% 90% at 50% -10%, #fff7ec 0%, var(--bg) 60%);
     }
     .hero .badge {
-      display: inline-block;
-      font-size: 14px;
-      letter-spacing: 0.12em;
-      color: var(--brand);
-      background: #fff;
-      border: 1px solid var(--line);
-      padding: 6px 14px;
-      border-radius: var(--pill);
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
+      display: inline-block; font-size: 14px; letter-spacing: 0.12em;
+      color: var(--brand); background: #fff; border: 1px solid var(--line);
+      padding: 6px 14px; border-radius: var(--pill); margin-bottom: 14px; box-shadow: var(--shadow);
     }
-
-    /* 동적 영업 상태 */
     .open-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 6px 16px;
-      border-radius: var(--pill);
-      margin-bottom: 20px;
-      letter-spacing: 0.02em;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 700; padding: 6px 16px;
+      border-radius: var(--pill); margin-bottom: 20px; letter-spacing: 0.02em;
     }
-    .open-status.open {
-      color: #1a7a35;
-      background: #eaf7ee;
-      border: 1.5px solid #b6e2c4;
-    }
-    .open-status.closed {
-      color: #a02020;
-      background: #fdecea;
-      border: 1.5px solid #f5c6c0;
-    }
+    .open-status.open  { color: #1a7a35; background: #eaf7ee; border: 1.5px solid #b6e2c4; }
+    .open-status.closed { color: #a02020; background: #fdecea; border: 1.5px solid #f5c6c0; }
+    .hero h1 { font-size: clamp(40px, 12vw, 68px); font-weight: 700; line-height: 1.1; }
+    .hero .value { margin-top: 16px; font-size: clamp(18px, 5vw, 24px); color: var(--brand-strong); font-weight: 700; }
+    .hero .sub { margin-top: 8px; font-size: 15px; color: var(--ink-soft); }
+    .hero-cta { margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-    .hero h1 {
-      font-size: clamp(40px, 12vw, 68px);
-      font-weight: 700;
-      line-height: 1.1;
-    }
-    .hero .value {
-      margin-top: 16px;
-      font-size: clamp(18px, 5vw, 24px);
-      color: var(--brand-strong);
-      font-weight: 700;
-      font-family: 'Noto Sans KR', sans-serif;
-    }
-    .hero .sub {
-      margin-top: 8px;
-      font-size: 15px;
-      color: var(--ink-soft);
-    }
-    .hero-cta {
-      margin-top: 30px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    /* ===== BUTTONS ===== */
+    /* BUTTONS */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: inherit;
-      padding: 14px 26px;
-      border-radius: var(--pill);
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; font-size: 16px; font-weight: 700; font-family: inherit;
+      padding: 14px 26px; border-radius: var(--pill); text-decoration: none;
+      border: none; cursor: pointer;
       transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(224, 139, 45, 0.35);
-    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(224,139,45,0.35); }
     .btn-primary:hover { background: var(--accent-strong); transform: translateY(-2px); }
     .btn-primary:active { transform: translateY(0); }
-    .btn-ghost {
-      background: #fff;
-      color: var(--brand-strong);
-      border: 1.5px solid var(--brand);
-    }
+    .btn-ghost { background: #fff; color: var(--brand-strong); border: 1.5px solid var(--brand); }
     .btn-ghost:hover { background: #fff3e6; transform: translateY(-2px); }
 
-    /* ===== SECTIONS ===== */
+    /* SECTIONS */
     section { padding: var(--space-6) 0; }
     .section-head { text-align: center; margin-bottom: 30px; }
     .section-head h2 { font-size: clamp(26px, 7vw, 34px); }
     .section-head p { color: var(--ink-soft); margin-top: 8px; }
 
-    /* ===== MENU ===== */
+    /* MENU CARDS */
     .menu-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: var(--shadow);
-      transition: transform 0.15s ease;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 22px;
+      box-shadow: var(--shadow); transition: transform 0.15s ease;
     }
     .card:hover { transform: translateY(-4px); }
     .card .emoji { font-size: 32px; }
-    .card .name { margin-top: 8px; font-size: 18px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; }
+    .card .name { margin-top: 8px; font-size: 18px; font-weight: 700; }
     .card .price { margin-top: 6px; font-size: 16px; font-weight: 700; color: var(--brand-strong); }
     .card .desc { margin-top: 8px; font-size: 14px; color: var(--ink-soft); }
     .card.signature { border-color: var(--accent); position: relative; }
     .card.signature::after {
-      content: "대표";
-      position: absolute; top: 16px; right: 16px;
+      content: "대표"; position: absolute; top: 16px; right: 16px;
       font-size: 12px; font-weight: 700; color: #fff;
       background: var(--accent); padding: 3px 10px; border-radius: var(--pill);
     }
 
-    /* ===== HOURS ===== */
+    /* HOURS */
     .hours {
-      margin-top: 22px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
+      margin-top: 22px; background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 22px; display: grid; grid-template-columns: 1fr; gap: 16px;
     }
-    .hours .block .label {
-      font-size: 13px; letter-spacing: 0.06em; color: var(--brand);
-      font-weight: 700; margin-bottom: 8px;
-    }
+    .hours .block .label { font-size: 13px; letter-spacing: 0.06em; color: var(--brand); font-weight: 700; margin-bottom: 8px; }
     .hours .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 15px; border-bottom: 1px solid var(--line); }
     .hours .row:last-child { border-bottom: none; }
     .hours .off { color: var(--danger); font-weight: 600; }
     .hours .pickup-note { font-size: 14px; color: var(--ink-soft); margin-top: 6px; }
     .hours .pickup-strong { color: var(--brand-strong); font-weight: 700; }
 
-    /* ===== RESERVE (폼 + 목록) ===== */
+    /* RESERVE */
     .reserve-layout { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
     .panel {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px;
     }
     .panel h3 { font-size: 19px; margin-bottom: 4px; }
     .panel .panel-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 18px; }
 
     .field { margin-bottom: 14px; }
     .field label { display: block; font-size: 13px; font-weight: 700; color: var(--brand-strong); margin-bottom: 6px; }
-    .field input {
-      width: 100%;
-      font-size: 16px;
-      font-family: inherit;
-      color: var(--ink);
-      padding: 12px 14px;
-      border: 1.5px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fffdfa;
-      transition: border-color 0.12s ease, box-shadow 0.12s ease;
-    }
-    .field input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+    .field input,
     .field select {
-      width: 100%;
-      font-size: 16px;
-      font-family: inherit;
-      color: var(--ink);
-      padding: 12px 14px;
-      border: 1.5px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: #fffdfa;
+      width: 100%; font-size: 16px; font-family: inherit; color: var(--ink);
+      padding: 12px 14px; border: 1.5px solid var(--line);
+      border-radius: var(--radius-sm); background: #fffdfa;
       transition: border-color 0.12s ease, box-shadow 0.12s ease;
-      cursor: pointer;
     }
+    .field input:focus,
     .field select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
     .field .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
     .form-error {
       display: none; font-size: 13px; color: var(--danger);
-      background: #fdecea; border: 1px solid #f5c6c0; border-radius: var(--radius-sm);
-      padding: 8px 12px; margin-bottom: 14px;
+      background: #fdecea; border: 1px solid #f5c6c0;
+      border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 14px;
     }
     .form-error.show { display: block; }
     .btn-primary.full { width: 100%; }
@@ -295,8 +188,8 @@
     .count-pill { font-size: 13px; font-weight: 700; color: var(--brand-strong); background: #fff3e6; border-radius: var(--pill); padding: 4px 12px; }
     .btn-reset {
       background: #fff; color: var(--danger); border: 1.5px solid #f0c8c2;
-      font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill); cursor: pointer;
-      transition: background 0.12s ease, transform 0.12s ease;
+      font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill);
+      cursor: pointer; transition: background 0.12s ease, transform 0.12s ease;
     }
     .btn-reset:hover { background: #fdecea; }
     .btn-reset:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -312,7 +205,7 @@
       flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
       background: linear-gradient(135deg, #c89a6f, #b5764a); color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 17px; font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 700; font-size: 17px;
     }
     .res-body { flex: 1; min-width: 0; }
     .res-name { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -327,8 +220,8 @@
     .status-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
     .btn-delete {
       background: #fff; color: var(--danger); border: 1.5px solid #f0c8c2;
-      font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill); cursor: pointer;
-      transition: background 0.12s ease, transform 0.12s ease;
+      font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill);
+      cursor: pointer; transition: background 0.12s ease, transform 0.12s ease;
     }
     .btn-delete:hover { background: #fdecea; transform: translateY(-1px); }
 
@@ -339,10 +232,10 @@
 
     .empty { text-align: center; padding: 40px 20px; color: var(--ink-soft); }
     .empty .emoji { font-size: 44px; display: block; margin-bottom: 12px; }
-    .empty .title { font-family: 'Noto Sans KR', sans-serif; font-size: 18px; color: var(--ink); }
+    .empty .title { font-size: 18px; color: var(--ink); }
     .empty .desc { font-size: 14px; margin-top: 6px; }
 
-    /* ===== LOCATION ===== */
+    /* LOCATION */
     .info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
     .info-grid { display: grid; grid-template-columns: 1fr; }
     .info-block { padding: 22px; }
@@ -355,84 +248,38 @@
     .info-cta { margin-top: var(--space-3); }
     .info-block .contact-note { margin-top: var(--space-2); }
 
-    /* ===== HERO IMAGE ===== */
-    .hero-visual {
-      margin-top: 36px;
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      max-height: 320px;
-    }
-    .hero-visual img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    /* HERO IMAGE */
+    .hero-visual { margin-top: 36px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); max-height: 320px; }
+    .hero-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    /* ===== CARD IMAGES ===== */
-    .card-img-wrap {
-      margin: -22px -22px 16px;
-      border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-      overflow: hidden;
-      height: 150px;
-    }
-    .card-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.3s ease;
-    }
+    /* CARD IMAGES */
+    .card-img-wrap { margin: -22px -22px 16px; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; overflow: hidden; height: 150px; }
+    .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
     .card:hover .card-img-wrap img { transform: scale(1.05); }
 
-    /* ===== GEO ABOUT ===== */
-    .about-block {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--brand);
-      border-radius: var(--radius-sm);
-      padding: 20px 24px;
-      box-shadow: var(--shadow);
-    }
-    .about-block p {
-      font-size: 15px;
-      line-height: 1.8;
-      color: var(--ink);
-    }
+    /* ABOUT */
+    .about-block { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: var(--radius-sm); padding: 20px 24px; box-shadow: var(--shadow); }
+    .about-block p { font-size: 15px; line-height: 1.8; color: var(--ink); }
 
     footer { text-align: center; padding: 36px 20px 48px; color: var(--ink-soft); font-size: 14px; }
-    footer .name { font-family: 'Noto Sans KR', sans-serif; font-size: 18px; color: var(--ink); }
+    footer .name { font-size: 18px; color: var(--ink); }
     footer .practice { margin-top: 8px; font-size: 12px; }
     footer .admin-link { margin-top: 14px; font-size: 13px; }
     footer .admin-link a { color: var(--brand); text-decoration: none; }
     footer .admin-link a:hover { text-decoration: underline; }
 
-    /* ===== 예약 성공 토스트 ===== */
     .toast {
-      position: fixed;
-      bottom: 90px;
-      left: 50%;
+      position: fixed; bottom: 90px; left: 50%;
       transform: translateX(-50%) translateY(16px);
-      background: #1a7a35;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 12px 24px;
-      border-radius: var(--pill);
+      background: #1a7a35; color: #fff; font-size: 14px; font-weight: 700;
+      padding: 12px 24px; border-radius: var(--pill);
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-      opacity: 0;
-      pointer-events: none;
+      opacity: 0; pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
-      white-space: nowrap;
-      z-index: 100;
+      white-space: nowrap; z-index: 100;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ===== 모바일 하단 고정바 ===== */
     .sticky-bar {
       position: fixed; left: 0; right: 0; bottom: 0;
       display: flex; gap: 10px;
@@ -442,7 +289,6 @@
     }
     .sticky-bar .btn { flex: 1; padding: 13px 10px; font-size: 15px; }
 
-    /* ===== 좁은 모바일 (≤400px) ===== */
     @media (max-width: 400px) {
       .wrap { padding: 0 16px; }
       .hero { padding: 60px 16px 48px; }
@@ -455,7 +301,6 @@
       .res-actions .status-select { flex: 1; }
     }
 
-    /* ===== 데스크톱 ===== */
     @media (min-width: 760px) {
       .menu-grid { grid-template-columns: repeat(2, 1fr); }
       .hours { grid-template-columns: 1fr 1fr; }
@@ -470,7 +315,6 @@
 </head>
 <body>
 
-  <!-- 1. 상단: 이름 + 가치 + 예약 버튼 -->
   <header class="hero">
     <div class="wrap">
       <span class="badge">☕ 서울 연남동 직접 로스팅 카페</span>
@@ -480,26 +324,23 @@
       <p class="sub">연남동 직장인을 위한 테이크아웃 픽업 카페. 예약하고 오면 5분 이내로 갓 내린 한 잔이 준비됩니다.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#reserve">🥡 테이크아웃 예약하기</a>
-        <a class="btn btn-ghost" href="#menu">메뉴 보기</a>
+        <a class="btn btn-ghost" href="#menuSection">메뉴 보기</a>
       </div>
       <div class="hero-visual">
-        <img
-          src="https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&h=480&q=80"
+        <img src="https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&h=480&q=80"
           alt="연남동 모닝브루 카페 내부 — 직접 로스팅 원두와 프렌치프레스가 놓인 따뜻한 나무 테이블"
           width="1200" height="480" loading="eager" />
       </div>
     </div>
   </header>
 
-  <!-- 소개 (GEO 최적화) -->
   <section class="wrap" id="about" style="padding: 32px 0 0;">
     <div class="about-block">
-      <p>서울 마포구 연남동에 위치한 카페 모닝브루(Morning Brew)는 생두를 직접 로스팅해 매일 신선한 원두를 드리퍼로 내리는 스페셜티 커피 전문점으로, 화요일부터 일요일까지 오전 8시~오후 8시에 운영한다. 온라인 테이크아웃 예약을 이용하면 평균 대기 5분 이내로 음료를 받을 수 있어 출근 전 빠른 픽업이 필요한 직장인에게 특히 적합하다. 공식 웹사이트에서 방문 전 사전 예약이 가능하다.</p>
+      <p>서울 마포구 연남동에 위치한 카페 모닝브루(Morning Brew)는 생두를 직접 로스팅해 매일 신선한 원두를 드리퍼로 내리는 스페셜티 커피 전문점으로, 화요일부터 일요일까지 오전 8시~오후 8시에 운영한다. 온라인 테이크아웃 예약을 이용하면 평균 대기 5분 이내로 음료를 받을 수 있어 출근 전 빠른 픽업이 필요한 직장인에게 특히 적합하다.</p>
     </div>
   </section>
 
-  <!-- 2. 중단: 메뉴 + 영업/픽업 시간 -->
-  <section class="wrap" id="menu">
+  <section class="wrap" id="menuSection">
     <div class="section-head">
       <h2>대표 메뉴</h2>
       <p>출근길, 오늘의 한 잔을 골라보세요</p>
@@ -507,10 +348,8 @@
     <div class="menu-grid">
       <div class="card signature">
         <div class="card-img-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1522012188892-24beb302783d?auto=format&fit=crop&w=600&h=300&q=80"
-            alt="모닝브루 핸드드립 커피 — 직접 로스팅한 원두를 드리퍼로 갓 내리는 연남동 카페 시그니처"
-            width="600" height="300" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1522012188892-24beb302783d?auto=format&fit=crop&w=600&h=300&q=80"
+            alt="모닝브루 핸드드립 커피" width="600" height="300" loading="lazy" />
         </div>
         <div class="emoji">☕</div>
         <div class="name">핸드드립 커피</div>
@@ -519,10 +358,8 @@
       </div>
       <div class="card">
         <div class="card-img-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&h=300&q=80"
-            alt="모닝브루 오늘의 원두 — 연남동 카페에서 직접 로스팅해 날마다 바뀌는 스페셜티 원두"
-            width="600" height="300" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&h=300&q=80"
+            alt="모닝브루 오늘의 원두" width="600" height="300" loading="lazy" />
         </div>
         <div class="emoji">🫘</div>
         <div class="name">오늘의 원두</div>
@@ -531,10 +368,8 @@
       </div>
       <div class="card">
         <div class="card-img-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1611337848619-0a468832fcea?auto=format&fit=crop&w=600&h=300&q=80"
-            alt="모닝브루 수제 스콘 — 연남동 카페 모닝브루에서 당일 구운 클로티드크림과 잼을 곁들인 스콘"
-            width="600" height="300" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1611337848619-0a468832fcea?auto=format&fit=crop&w=600&h=300&q=80"
+            alt="모닝브루 수제 스콘" width="600" height="300" loading="lazy" />
         </div>
         <div class="emoji">🥐</div>
         <div class="name">수제 스콘</div>
@@ -543,10 +378,8 @@
       </div>
       <div class="card">
         <div class="card-img-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1574571791847-06514225b338?auto=format&fit=crop&w=600&h=300&q=80"
-            alt="모닝브루 계절 과일 에이드 — 연남동 카페 모닝브루의 제철 과일로 만든 상큼한 수제 에이드"
-            width="600" height="300" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1574571791847-06514225b338?auto=format&fit=crop&w=600&h=300&q=80"
+            alt="모닝브루 계절 과일 에이드" width="600" height="300" loading="lazy" />
         </div>
         <div class="emoji">🍑</div>
         <div class="name">계절 과일 에이드</div>
@@ -570,7 +403,6 @@
     </div>
   </section>
 
-  <!-- 3. 하단: 예약 폼 + 목록 -->
   <section class="wrap" id="reserve">
     <div class="section-head">
       <h2>테이크아웃 예약</h2>
@@ -578,11 +410,9 @@
     </div>
 
     <div class="reserve-layout">
-      <!-- 예약 폼 -->
       <div class="panel">
         <h3>새 예약</h3>
         <p class="panel-sub">정보를 입력하고 '테이크아웃 예약하기'를 누르세요.</p>
-
         <div id="formError" class="form-error"></div>
 
         <form id="resForm" autocomplete="off">
@@ -593,16 +423,6 @@
           <div class="field">
             <label for="phone">연락처</label>
             <input type="tel" id="phone" placeholder="예: 010-1234-5678" inputmode="tel" />
-          </div>
-          <div class="field">
-            <label for="menu">원하는 메뉴</label>
-            <select id="menu">
-              <option value="">메뉴를 선택해 주세요</option>
-              <option value="핸드드립 커피">☕ 핸드드립 커피 (5,500원)</option>
-              <option value="오늘의 원두">🫘 오늘의 원두 (4,500원)</option>
-              <option value="수제 스콘">🥐 수제 스콘 (3,500원)</option>
-              <option value="계절 과일 에이드">🍑 계절 과일 에이드 (6,000원)</option>
-            </select>
           </div>
           <div class="field-row">
             <div class="field">
@@ -615,6 +435,16 @@
             </div>
           </div>
           <div class="field">
+            <label for="menuSelect">메뉴</label>
+            <select id="menuSelect">
+              <option value="">-- 메뉴를 선택하세요 --</option>
+              <option value="핸드드립 커피 (5,500원)">☕ 핸드드립 커피 (5,500원)</option>
+              <option value="오늘의 원두 (4,500원)">🫘 오늘의 원두 (4,500원)</option>
+              <option value="수제 스콘 (3,500원)">🥐 수제 스콘 (3,500원)</option>
+              <option value="계절 과일 에이드 (6,000원)">🍑 계절 과일 에이드 (6,000원)</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="people">인원수</label>
             <input type="number" id="people" min="1" value="1" inputmode="numeric" />
           </div>
@@ -622,7 +452,6 @@
         </form>
       </div>
 
-      <!-- 예약 목록 -->
       <div class="panel">
         <div class="list-head">
           <h3>예약 목록</h3>
@@ -636,7 +465,6 @@
     </div>
   </section>
 
-  <!-- 4. 마지막: 위치 + 연락 -->
   <section class="wrap" id="location">
     <div class="section-head">
       <h2>찾아오시는 길</h2>
@@ -667,29 +495,25 @@
     <p class="admin-link"><a href="reservations.html">사장님 예약 관리 페이지 →</a></p>
   </footer>
 
-  <!-- 모바일 하단 고정바 -->
   <nav class="sticky-bar">
     <a class="btn btn-primary" href="#reserve">🥡 테이크아웃 예약</a>
     <a class="btn btn-ghost" href="tel:02-123-4567">📞 전화</a>
   </nav>
 
-  <!-- 예약 성공 토스트 -->
   <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
 
   <script>
-    // ===== 동적 영업 상태 =====
     function updateOpenStatus() {
       const now = new Date();
-      const day = now.getDay(); // 0=일, 1=월, ..., 6=토
+      const day = now.getDay();
       const totalMin = now.getHours() * 60 + now.getMinutes();
       const el = document.getElementById('openStatus');
-
       if (day === 1) {
         el.className = 'open-status closed';
         el.textContent = '🔴 오늘 휴무 (월요일)';
         return;
       }
-      if (totalMin >= 480 && totalMin < 1200) { // 08:00 ~ 20:00
+      if (totalMin >= 480 && totalMin < 1200) {
         el.className = 'open-status open';
         el.textContent = '🟢 지금 영업 중 · 08:00–20:00';
       } else {
@@ -698,7 +522,6 @@
       }
     }
 
-    // ===== 토스트 =====
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
@@ -706,7 +529,6 @@
       setTimeout(function () { toast.classList.remove('show'); }, 3000);
     }
 
-    // ===== 데이터 저장소 (localStorage 영구 저장 — Day 04 코드 유지) =====
     const STORAGE_KEY = 'morningbrew_reservations';
     let reservations = [];
     let nextId = 1;
@@ -716,19 +538,12 @@
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         if (Array.isArray(saved)) {
           reservations = saved;
-          nextId = reservations.reduce(function (max, r) {
-            return Math.max(max, r.id || 0);
-          }, 0) + 1;
+          nextId = reservations.reduce(function (max, r) { return Math.max(max, r.id || 0); }, 0) + 1;
         }
-      } catch (e) {
-        reservations = [];
-        nextId = 1;
-      }
+      } catch (e) { reservations = []; nextId = 1; }
     }
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
-    }
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations)); }
 
     const STATUSES = [
       { value: 'waiting',   label: '대기중' },
@@ -737,60 +552,38 @@
     ];
     const STATUS_CLASS = { waiting: 'status-waiting', confirmed: 'status-confirmed', cancelled: 'status-cancelled' };
 
-    const _supabase = window.supabase.createClient(
-      'https://qcgdmkrysvjjvoxzhlar.supabase.co',
-      'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S'
-    );
-
-    const form = document.getElementById('resForm');
+    const form      = document.getElementById('resForm');
     const formError = document.getElementById('formError');
-    const listEl = document.getElementById('resList');
+    const listEl    = document.getElementById('resList');
     const countPill = document.getElementById('countPill');
-    const resetBtn = document.getElementById('resetBtn');
+    const resetBtn  = document.getElementById('resetBtn');
 
-    form.addEventListener('submit', async function (e) {
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      const name = document.getElementById('name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const menu = document.getElementById('menu').value;
-      const date = document.getElementById('date').value;
+      const name   = document.getElementById('name').value.trim();
+      const phone  = document.getElementById('phone').value.trim();
+      const date   = document.getElementById('date').value;
       const pickup = document.getElementById('pickup').value;
+      const menu   = document.getElementById('menuSelect').value;
       const people = parseInt(document.getElementById('people').value, 10);
 
-      if (!name) return showError('이름을 입력해 주세요.');
-      if (!phone) return showError('연락처를 입력해 주세요.');
-      if (!menu) return showError('원하는 메뉴를 선택해 주세요.');
-      if (!date) return showError('픽업 날짜를 선택해 주세요.');
-      if (!pickup) return showError('픽업 시간을 선택해 주세요.');
-      if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
+      if (!name)                   return showError('이름을 입력해 주세요.');
+      if (!phone)                  return showError('연락처를 입력해 주세요.');
+      if (!date)                   return showError('픽업 날짜를 선택해 주세요.');
+      if (!pickup)                 return showError('픽업 시간을 선택해 주세요.');
+      if (!menu)                   return showError('메뉴를 선택해 주세요.');
+      if (!people || people < 1)   return showError('인원수는 1명 이상이어야 합니다.');
 
       hideError();
-
-      const submitBtn = form.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      const origLabel = submitBtn.textContent;
-      submitBtn.textContent = '저장 중…';
-
-      try {
-        const { error } = await _supabase.from('reservations').insert({
-          name, phone, menu, time: date, people, pickup
-        });
-        if (error) throw error;
-
-        reservations.push({ id: nextId++, name, phone, menu, date, pickup, people, status: 'waiting' });
-        save();
-        render();
-        form.reset();
-        document.getElementById('people').value = 1;
-        document.getElementById('name').focus();
-        showToast('✅ 예약이 접수되었습니다! 방문 전날 연락드리겠습니다.');
-      } catch (err) {
-        showError('잠시 후 다시 시도해주세요.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = origLabel;
-      }
+      reservations.push({ id: nextId++, name, phone, date, pickup, menu, people, status: 'waiting' });
+      save();
+      render();
+      form.reset();
+      document.getElementById('people').value = 1;
+      document.getElementById('menuSelect').value = '';
+      document.getElementById('name').focus();
+      showToast('✅ 예약이 접수되었습니다!');
     });
 
     listEl.addEventListener('click', function (e) {
@@ -798,8 +591,7 @@
       if (!btn) return;
       const id = Number(btn.dataset.id);
       reservations = reservations.filter(function (r) { return r.id !== id; });
-      save();
-      render();
+      save(); render();
     });
 
     listEl.addEventListener('change', function (e) {
@@ -807,29 +599,22 @@
       if (!select) return;
       const id = Number(select.dataset.id);
       const target = reservations.find(function (r) { return r.id === id; });
-      if (target) {
-        target.status = select.value;
-        save();
-        render();
-      }
+      if (target) { target.status = select.value; save(); render(); }
     });
 
     resetBtn.addEventListener('click', function () {
       if (reservations.length === 0) return;
       if (!confirm('모든 예약을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
-      reservations = [];
-      nextId = 1;
-      save();
-      render();
+      reservations = []; nextId = 1; save(); render();
     });
 
     function showError(msg) { formError.textContent = msg; formError.classList.add('show'); }
-    function hideError() { formError.classList.remove('show'); }
+    function hideError()    { formError.classList.remove('show'); }
 
     function escapeHtml(str) {
       return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     function render() {
@@ -852,10 +637,10 @@
       });
 
       listEl.innerHTML = sorted.map(function (r) {
-        const initial = escapeHtml(r.name.charAt(0));
-        const status = r.status || 'waiting';
+        const initial     = escapeHtml(r.name.charAt(0));
+        const status      = r.status || 'waiting';
         const statusClass = STATUS_CLASS[status] || 'status-waiting';
-        const options = STATUSES.map(function (s) {
+        const options     = STATUSES.map(function (s) {
           return '<option value="' + s.value + '"' + (s.value === status ? ' selected' : '') + '>' + s.label + '</option>';
         }).join('');
         const dateText = r.date ? escapeHtml(r.date) + ' ' : '';
@@ -867,7 +652,10 @@
               '<div class="res-name">' + escapeHtml(r.name) +
                 '<span class="res-time">⏰ ' + dateText + escapeHtml(r.pickup || '') + '</span>' +
               '</div>' +
-              '<div class="res-meta">📞 ' + escapeHtml(r.phone) + ' · 👤 ' + r.people + '명</div>' +
+              '<div class="res-meta">📞 ' + escapeHtml(r.phone) +
+                ' · 👤 ' + r.people + '명' +
+                (r.menu ? ' · 🧾 ' + escapeHtml(r.menu) : '') +
+              '</div>' +
             '</div>' +
             '<div class="res-actions">' +
               '<select class="status-select" data-id="' + r.id + '">' + options + '</select>' +
