@@ -155,7 +155,7 @@
     .hours .pickup-strong { color: var(--brand-strong); font-weight: 700; }
 
     /* RESERVE */
-    .reserve-layout { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+    .reserve-form-wrap { max-width: 480px; margin: 0 auto; }
     .panel {
       background: var(--surface); border: 1px solid var(--line);
       border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px;
@@ -185,58 +185,6 @@
     .form-error.show { display: block; }
     .btn-primary.full { width: 100%; }
 
-    .list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .list-head h3 { margin: 0; }
-    .list-actions { display: flex; align-items: center; gap: var(--space-2); }
-    .count-pill { font-size: 13px; font-weight: 700; color: var(--brand-strong); background: #fff3e6; border-radius: var(--pill); padding: 4px 12px; }
-    .btn-reset {
-      background: #fff; color: var(--danger); border: 1.5px solid #f0c8c2;
-      font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill);
-      cursor: pointer; transition: background 0.12s ease, transform 0.12s ease;
-    }
-    .btn-reset:hover { background: #fdecea; }
-    .btn-reset:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    ul.reservations { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-    .res-item {
-      display: flex; align-items: center; gap: 14px;
-      border: 1px solid var(--line); border-radius: var(--radius-md);
-      padding: 14px 16px; background: #fffdfa; animation: pop 0.18s ease;
-    }
-    @keyframes pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-    .res-avatar {
-      flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
-      background: linear-gradient(135deg, #c89a6f, #b5764a); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 17px;
-    }
-    .res-body { flex: 1; min-width: 0; }
-    .res-name { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .res-time { font-size: 12px; font-weight: 700; color: #fff; background: var(--brand); border-radius: var(--pill); padding: 2px 9px; }
-    .res-meta { font-size: 13px; color: var(--ink-soft); margin-top: 3px; word-break: break-all; }
-    .res-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-    .status-select {
-      font-family: inherit; font-size: 13px; font-weight: 700;
-      padding: 7px 10px; border-radius: var(--pill); border: 1.5px solid var(--line);
-      background: #fff; color: var(--ink); cursor: pointer;
-    }
-    .status-select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
-    .btn-delete {
-      background: #fff; color: var(--danger); border: 1.5px solid #f0c8c2;
-      font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: var(--pill);
-      cursor: pointer; transition: background 0.12s ease, transform 0.12s ease;
-    }
-    .btn-delete:hover { background: #fdecea; transform: translateY(-1px); }
-
-    .res-item.status-waiting   { background: #fff8ec; border-color: #f3dcb0; }
-    .res-item.status-confirmed { background: #eef7ef; border-color: #bfe0c4; }
-    .res-item.status-cancelled { background: #f4f2f1; border-color: #ddd5cf; opacity: 0.72; }
-    .res-item.status-cancelled .res-name { text-decoration: line-through; color: var(--ink-soft); }
-
-    .empty { text-align: center; padding: 40px 20px; color: var(--ink-soft); }
-    .empty .emoji { font-size: 44px; display: block; margin-bottom: 12px; }
-    .empty .title { font-size: 18px; color: var(--ink); }
-    .empty .desc { font-size: 14px; margin-top: 6px; }
 
     /* LOCATION */
     .info { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
@@ -267,9 +215,6 @@
     footer { text-align: center; padding: 36px 20px 48px; color: var(--ink-soft); font-size: 14px; }
     footer .name { font-size: 18px; color: var(--ink); }
     footer .practice { margin-top: 8px; font-size: 12px; }
-    footer .admin-link { margin-top: 14px; font-size: 13px; }
-    footer .admin-link a { color: var(--brand); text-decoration: none; }
-    footer .admin-link a:hover { text-decoration: underline; }
 
     .toast {
       position: fixed; bottom: 90px; left: 50%;
@@ -307,7 +252,6 @@
     @media (min-width: 760px) {
       .menu-grid { grid-template-columns: repeat(2, 1fr); }
       .hours { grid-template-columns: 1fr 1fr; }
-      .reserve-layout { grid-template-columns: 380px 1fr; }
       .info-grid { grid-template-columns: 1fr 1fr; }
       .info-block + .info-block { border-top: none; border-left: 1px dashed var(--line); }
       .sticky-bar { display: none; }
@@ -412,7 +356,7 @@
       <p>테이크아웃 예약으로 출근길에 줄 없이 받아가세요</p>
     </div>
 
-    <div class="reserve-layout">
+    <div class="reserve-form-wrap">
       <div class="panel">
         <h3>새 예약</h3>
         <p class="panel-sub">정보를 입력하고 '테이크아웃 예약하기'를 누르세요.</p>
@@ -449,21 +393,10 @@
           </div>
           <div class="field">
             <label for="people">인원수</label>
-            <input type="number" id="people" min="1" value="1" inputmode="numeric" />
+            <input type="number" id="people" min="1" max="20" value="1" inputmode="numeric" />
           </div>
           <button type="submit" class="btn btn-primary full">🥡 테이크아웃 예약하기</button>
         </form>
-      </div>
-
-      <div class="panel">
-        <div class="list-head">
-          <h3>예약 목록</h3>
-          <div class="list-actions">
-            <span class="count-pill" id="countPill">0건</span>
-            <button type="button" class="btn-reset" id="resetBtn">전체 초기화</button>
-          </div>
-        </div>
-        <ul class="reservations" id="resList"></ul>
       </div>
     </div>
   </section>
@@ -494,8 +427,7 @@
   <footer>
     <div class="name">모닝브루 · Morning Brew</div>
     <p>서울 연남동 · 화~일 08:00–20:00 (월 휴무)</p>
-    <p class="practice">※ 본 페이지는 실습용이며, 예약은 가짜 데이터로 이 브라우저에만 저장됩니다.</p>
-    <p class="admin-link"><a href="reservations.html">사장님 예약 관리 페이지 →</a></p>
+    <p class="practice">※ 본 페이지는 실습용입니다.</p>
   </footer>
 
   <nav class="sticky-bar">
@@ -533,39 +465,12 @@
     }
 
     // ===== Supabase 초기화 =====
-    const SUPABASE_URL  = 'https://qcgdmkrysvjjvoxzhlar.supabase.co';
-    const SUPABASE_KEY  = 'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S';
-    const sbClient      = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // ===== localStorage (예약 목록 UI용) =====
-    const STORAGE_KEY = 'morningbrew_reservations';
-    let reservations = [];
-    let nextId = 1;
-
-    function load() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        if (Array.isArray(saved)) {
-          reservations = saved;
-          nextId = reservations.reduce(function (max, r) { return Math.max(max, r.id || 0); }, 0) + 1;
-        }
-      } catch (e) { reservations = []; nextId = 1; }
-    }
-
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations)); }
-
-    const STATUSES = [
-      { value: 'waiting',   label: '대기중' },
-      { value: 'confirmed', label: '확인완료' },
-      { value: 'cancelled', label: '취소' }
-    ];
-    const STATUS_CLASS = { waiting: 'status-waiting', confirmed: 'status-confirmed', cancelled: 'status-cancelled' };
+    const SUPABASE_URL = 'https://qcgdmkrysvjjvoxzhlar.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S';
+    const sbClient     = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const form      = document.getElementById('resForm');
     const formError = document.getElementById('formError');
-    const listEl    = document.getElementById('resList');
-    const countPill = document.getElementById('countPill');
-    const resetBtn  = document.getElementById('resetBtn');
     const submitBtn = form.querySelector('button[type="submit"]');
 
     form.addEventListener('submit', async function (e) {
@@ -573,14 +478,14 @@
 
       const name   = document.getElementById('name').value.trim();
       const phone  = document.getElementById('phone').value.trim();
-      const time   = document.getElementById('date').value;      // 날짜 → DB: time
+      const date   = document.getElementById('date').value;
       const pickup = document.getElementById('pickup').value;
       const menu   = document.getElementById('menuSelect').value;
       const people = parseInt(document.getElementById('people').value, 10);
 
       if (!name)                 return showError('이름을 입력해 주세요.');
       if (!phone)                return showError('연락처를 입력해 주세요.');
-      if (!time)                 return showError('픽업 날짜를 선택해 주세요.');
+      if (!date)                 return showError('픽업 날짜를 선택해 주세요.');
       if (!pickup)               return showError('픽업 시간을 선택해 주세요.');
       if (!menu)                 return showError('메뉴를 선택해 주세요.');
       if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
@@ -589,113 +494,27 @@
       submitBtn.disabled = true;
       submitBtn.textContent = '처리 중…';
 
-      // Supabase INSERT
       const { error } = await sbClient
         .from('reservations')
-        .insert([{ name, phone, menu, date: time, people, pickup }]);
+        .insert([{ name, phone, menu, date, people, pickup }]);
 
       submitBtn.disabled = false;
       submitBtn.textContent = '🥡 테이크아웃 예약하기';
 
       if (error) {
-        console.error('Supabase error:', error);
         return showError('잠시 후 다시 시도해주세요.');
       }
 
-      // 로컬 목록에도 반영
-      reservations.push({ id: nextId++, name, phone, date: time, pickup, menu, people, status: 'waiting' });
-      save();
-      render();
       form.reset();
       document.getElementById('people').value = 1;
-      document.getElementById('menuSelect').value = '';
       document.getElementById('name').focus();
       showToast('✅ 예약이 접수되었습니다! 방문 전날 연락드리겠습니다.');
-    });
-
-    listEl.addEventListener('click', function (e) {
-      const btn = e.target.closest('.btn-delete');
-      if (!btn) return;
-      const id = Number(btn.dataset.id);
-      reservations = reservations.filter(function (r) { return r.id !== id; });
-      save(); render();
-    });
-
-    listEl.addEventListener('change', function (e) {
-      const select = e.target.closest('.status-select');
-      if (!select) return;
-      const id = Number(select.dataset.id);
-      const target = reservations.find(function (r) { return r.id === id; });
-      if (target) { target.status = select.value; save(); render(); }
-    });
-
-    resetBtn.addEventListener('click', function () {
-      if (reservations.length === 0) return;
-      if (!confirm('모든 예약을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
-      reservations = []; nextId = 1; save(); render();
     });
 
     function showError(msg) { formError.textContent = msg; formError.classList.add('show'); }
     function hideError()    { formError.classList.remove('show'); }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    }
-
-    function render() {
-      countPill.textContent = reservations.length + '건';
-      resetBtn.disabled = reservations.length === 0;
-
-      if (reservations.length === 0) {
-        listEl.innerHTML =
-          '<li class="empty">' +
-            '<span class="emoji">📭</span>' +
-            '<div class="title">아직 예약이 없습니다.</div>' +
-            '<div class="desc">첫 예약을 추가해 보세요!</div>' +
-          '</li>';
-        return;
-      }
-
-      const sorted = reservations.slice().sort(function (a, b) {
-        const d = (a.date || '').localeCompare(b.date || '');
-        return d !== 0 ? d : (a.pickup || '').localeCompare(b.pickup || '');
-      });
-
-      listEl.innerHTML = sorted.map(function (r) {
-        const initial     = escapeHtml(r.name.charAt(0));
-        const status      = r.status || 'waiting';
-        const statusClass = STATUS_CLASS[status] || 'status-waiting';
-        const options     = STATUSES.map(function (s) {
-          return '<option value="' + s.value + '"' + (s.value === status ? ' selected' : '') + '>' + s.label + '</option>';
-        }).join('');
-        const dateText = r.date ? escapeHtml(r.date) + ' ' : '';
-
-        return (
-          '<li class="res-item ' + statusClass + '">' +
-            '<div class="res-avatar">' + initial + '</div>' +
-            '<div class="res-body">' +
-              '<div class="res-name">' + escapeHtml(r.name) +
-                '<span class="res-time">⏰ ' + dateText + escapeHtml(r.pickup || '') + '</span>' +
-              '</div>' +
-              '<div class="res-meta">📞 ' + escapeHtml(r.phone) +
-                ' · 👤 ' + r.people + '명' +
-                (r.menu ? ' · 🧾 ' + escapeHtml(r.menu) : '') +
-              '</div>' +
-            '</div>' +
-            '<div class="res-actions">' +
-              '<select class="status-select" data-id="' + r.id + '">' + options + '</select>' +
-              '<button class="btn-delete" data-id="' + r.id + '">삭제</button>' +
-            '</div>' +
-          '</li>'
-        );
-      }).join('');
-    }
-
     updateOpenStatus();
-    load();
-    render();
   </script>
 
 </body>
