@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>모닝브루 예약 관리</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    /* 인증 전 전체 숨김 */
+    body { visibility: hidden; }
+
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --ink: #1e293b;
+      --ink-soft: #64748b;
+      --brand: #b5764a;
+      --radius: 10px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* 접근 거부 화면 */
+    #denied {
+      display: none;
+      visibility: visible;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg);
+    }
+    #denied .icon { font-size: 48px; }
+    #denied h2 { font-size: 20px; color: #c0392b; }
+    #denied p  { color: var(--ink-soft); }
+
+    /* 레이아웃 */
+    .page { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* 헤더 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .top-bar h1 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .today-badge {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d4ed8;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 4px 14px;
+    }
+
+    /* 툴바 */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+      max-width: 300px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-soft);
+      pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
+      transition: border-color 0.15s;
+    }
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--brand);
+    }
+
+    .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .filter-btn:hover { border-color: var(--brand); color: var(--brand); }
+    .filter-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .btn-refresh {
+      margin-left: auto;
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.12s;
+    }
+    .btn-refresh:hover { border-color: var(--brand); color: var(--brand); }
+
+    /* 테이블 래퍼 */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+    thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ink-soft);
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td {
+      padding: 11px 14px;
+      vertical-align: middle;
+      color: var(--ink);
+    }
+    .cell-time { color: var(--ink-soft); font-size: 12px; white-space: nowrap; }
+    .cell-name { font-weight: 600; }
+    .cell-phone { color: var(--ink-soft); font-size: 13px; white-space: nowrap; }
+    .cell-menu { max-width: 140px; word-break: keep-all; }
+    .cell-count { text-align: center; }
+
+    /* 상태 배지 */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-신규    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-처리중  { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .badge-완료    { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    /* 상태 드롭다운 */
+    .status-select {
+      padding: 5px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .status-select:focus { outline: none; border-color: var(--brand); }
+    .status-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 빈 상태 / 로딩 */
+    .state-row td {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--ink-soft);
+    }
+    .state-row .icon { font-size: 36px; display: block; margin-bottom: 10px; }
+
+    /* 결과 건수 */
+    .result-count {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      text-align: right;
+    }
+
+    /* 토스트 */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #1e293b;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #c0392b; }
+  </style>
+</head>
+<body>
+
+  <!-- 접근 거부 화면 -->
+  <div id="denied">
+    <span class="icon">🔒</span>
+    <h2>접근이 거부되었습니다.</h2>
+    <p>올바른 접근 키가 필요합니다.</p>
+  </div>
+
+  <!-- 관리 화면 -->
+  <div class="page" id="app">
+    <div class="top-bar">
+      <h1>☕ 모닝브루 예약 관리</h1>
+      <span class="today-badge" id="todayBadge">오늘 신규 예약: — 건</span>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="9" r="6"/><path d="M15 15l3 3"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="이름 · 전화번호 검색" autocomplete="off" />
+      </div>
+
+      <div class="filter-group" id="filterGroup">
+        <button class="filter-btn active" data-status="전체">전체</button>
+        <button class="filter-btn" data-status="신규">신규</button>
+        <button class="filter-btn" data-status="처리중">처리중</button>
+        <button class="filter-btn" data-status="완료">완료</button>
+      </div>
+
+      <button class="btn-refresh" id="refreshBtn">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4a8 8 0 1 1 0 12"/><polyline points="1 4 4 4 4 7"/>
+        </svg>
+        새로고침
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>접수 시간</th>
+            <th>이름</th>
+            <th>전화번호</th>
+            <th>메뉴 선택</th>
+            <th>예약 시간</th>
+            <th>인원수</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="state-row">
+            <td colspan="7"><span class="icon">⏳</span>데이터를 불러오는 중…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ── 접근 보호 ──────────────────────────────────────────────
+    (function () {
+      const ACCESS_KEY = 'brew-7421';
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('key') !== ACCESS_KEY) {
+        document.getElementById('denied').style.display = 'flex';
+        return;
+      }
+      // 인증 성공 → 전체 표시
+      document.body.style.visibility = 'visible';
+      document.getElementById('app').style.display = 'block';
+      init();
+    })();
+
+    // ── Supabase 초기화 ────────────────────────────────────────
+    const SUPABASE_URL = 'https://qcgdmkrysvjjvoxzhlar.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S';
+    let sb;
+
+    // ── 상태 ──────────────────────────────────────────────────
+    let allRows = [];
+    let currentFilter = '전체';
+    let currentSearch = '';
+
+    // ── 초기화 ────────────────────────────────────────────────
+    function init() {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      fetchData();
+      bindEvents();
+    }
+
+    function bindEvents() {
+      document.getElementById('searchInput').addEventListener('input', function () {
+        currentSearch = this.value.trim().toLowerCase();
+        renderTable();
+      });
+
+      document.getElementById('filterGroup').addEventListener('click', function (e) {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentFilter = btn.dataset.status;
+        renderTable();
+      });
+
+      document.getElementById('refreshBtn').addEventListener('click', fetchData);
+    }
+
+    // ── 데이터 조회 ───────────────────────────────────────────
+    async function fetchData() {
+      setLoading(true);
+      const { data, error } = await sb
+        .from('reservations')
+        .select('id, name, phone, menu_preference, time, count, status, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        showToast('데이터 로드 실패: ' + error.message, true);
+        setLoading(false);
+        return;
+      }
+
+      allRows = data || [];
+      updateTodayBadge();
+      renderTable();
+    }
+
+    // ── 오늘 신규 예약 건수 ───────────────────────────────────
+    function updateTodayBadge() {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const count = allRows.filter(function (r) {
+        return (r.status === '신규' || !r.status) &&
+               r.created_at && r.created_at.startsWith(todayStr);
+      }).length;
+      document.getElementById('todayBadge').textContent = '오늘 신규 예약: ' + count + '건';
+    }
+
+    // ── 테이블 렌더링 ─────────────────────────────────────────
+    function renderTable() {
+      const filtered = allRows.filter(function (r) {
+        const status = r.status || '신규';
+        const matchFilter = currentFilter === '전체' || status === currentFilter;
+        const keyword = currentSearch;
+        const matchSearch = !keyword ||
+          (r.name && r.name.toLowerCase().includes(keyword)) ||
+          (r.phone && r.phone.toLowerCase().includes(keyword));
+        return matchFilter && matchSearch;
+      });
+
+      const tbody = document.getElementById('tableBody');
+      const count  = document.getElementById('resultCount');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML =
+          '<tr class="state-row"><td colspan="7">' +
+          '<span class="icon">📭</span>조건에 맞는 예약이 없습니다.</td></tr>';
+        count.textContent = '';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(function (r) {
+        const status = r.status || '신규';
+        return (
+          '<tr data-id="' + r.id + '">' +
+          '<td class="cell-time">'  + esc(formatDatetime(r.created_at)) + '</td>' +
+          '<td class="cell-name">'  + esc(r.name || '—') + '</td>' +
+          '<td class="cell-phone">' + esc(r.phone || '—') + '</td>' +
+          '<td class="cell-menu">'  + esc(r.menu_preference || '—') + '</td>' +
+          '<td class="cell-time">'  + esc(r.time || '—') + '</td>' +
+          '<td class="cell-count">' + esc(String(r.count || '—')) + '</td>' +
+          '<td>' + statusCell(r.id, status) + '</td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      count.textContent = '총 ' + filtered.length + '건 표시 중';
+
+      // 드롭다운 이벤트 위임
+      tbody.querySelectorAll('.status-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          updateStatus(Number(this.dataset.id), this.value, this);
+        });
+      });
+    }
+
+    function statusCell(id, status) {
+      const options = ['신규', '처리중', '완료'].map(function (s) {
+        return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
+      }).join('');
+      return (
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span class="badge badge-' + status + '">' + status + '</span>' +
+        '<select class="status-select" data-id="' + id + '">' + options + '</select>' +
+        '</div>'
+      );
+    }
+
+    // ── 상태 업데이트 ─────────────────────────────────────────
+    async function updateStatus(id, newStatus, selectEl) {
+      selectEl.disabled = true;
+
+      const { error } = await sb
+        .from('reservations')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+      selectEl.disabled = false;
+
+      if (error) {
+        showToast('상태 저장 실패: ' + error.message, true);
+        selectEl.value = allRows.find(function (r) { return r.id === id; })?.status || '신규';
+        return;
+      }
+
+      const row = allRows.find(function (r) { return r.id === id; });
+      if (row) row.status = newStatus;
+
+      updateTodayBadge();
+      renderTable();
+      showToast('상태가 "' + newStatus + '"으로 변경되었습니다.');
+    }
+
+    // ── 유틸 ──────────────────────────────────────────────────
+    function setLoading(on) {
+      if (on) {
+        document.getElementById('tableBody').innerHTML =
+          '<tr class="state-row"><td colspan="7"><span class="icon">⏳</span>데이터를 불러오는 중…</td></tr>';
+        document.getElementById('resultCount').textContent = '';
+      }
+    }
+
+    function formatDatetime(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mi = String(d.getMinutes()).padStart(2, '0');
+      return mm + '/' + dd + ' ' + hh + ':' + mi;
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    let toastTimer;
+    function showToast(msg, isError) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast' + (isError ? ' error' : '') + ' show';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.classList.remove('show'); }, 3000);
+    }
+  </script>
+
+</body>
+</html>
