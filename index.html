@@ -42,6 +42,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
   <style>
+    /* ── TOKENS ── */
     :root {
       --espresso:  #0F0A07;
       --roast:     #1E140E;
@@ -55,13 +56,14 @@
       --line:      #E8DDD3;
       --white:     #FFFFFF;
       --r-lg:      20px;
-      --r-md:      14px;
       --r-sm:      10px;
       --pill:      999px;
       --shadow-sm: 0 2px 12px rgba(15,10,7,.07);
       --shadow-md: 0 8px 32px rgba(15,10,7,.12);
       --shadow-lg: 0 20px 60px rgba(15,10,7,.16);
-      --transition: 0.25s cubic-bezier(.4,0,.2,1);
+      --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+      --t:         0.25s cubic-bezier(.4,0,.2,1);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -72,32 +74,68 @@
       color: var(--ink);
       line-height: 1.7;
       -webkit-font-smoothing: antialiased;
+      opacity: 0;
+      animation: bodyIn 0.4s ease 0.1s forwards;
     }
+    @keyframes bodyIn { to { opacity: 1; } }
     img { display: block; max-width: 100%; }
     a { color: inherit; text-decoration: none; }
-
-    /* ── TYPOGRAPHY ── */
     .serif { font-family: 'Playfair Display', Georgia, serif; }
-
-    /* ── LAYOUT ── */
     .container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
     section { padding: 96px 0; }
+
+    /* ── SCROLL PROGRESS ── */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; z-index: 300;
+      height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-lt), var(--gold));
+      pointer-events: none;
+      transition: width 0.08s linear;
+    }
+
+    /* ── CUSTOM CURSOR (desktop only) ── */
+    @media (hover: hover) and (pointer: fine) {
+      body { cursor: none; }
+      a, button, [role="button"], input, select, label { cursor: none; }
+    }
+    #cursor-dot, #cursor-ring {
+      display: none;
+      position: fixed; z-index: 9999; pointer-events: none;
+      border-radius: 50%; transform: translate(-50%, -50%);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      #cursor-dot { display: block; width: 8px; height: 8px; background: var(--gold); }
+      #cursor-ring {
+        display: block; width: 40px; height: 40px;
+        border: 1.5px solid rgba(196,151,58,.6);
+        transition: width .3s var(--ease-out), height .3s var(--ease-out),
+                    border-color .3s ease, transform .08s linear,
+                    background .3s ease;
+      }
+      #cursor-ring.hovered {
+        width: 56px; height: 56px;
+        border-color: var(--gold);
+        background: rgba(196,151,58,.08);
+      }
+      #cursor-ring.clicking { width: 32px; height: 32px; background: rgba(196,151,58,.2); }
+    }
 
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 20px 0;
-      transition: background var(--transition), padding var(--transition), box-shadow var(--transition);
+      transition: background var(--t), padding var(--t), box-shadow var(--t);
+      transform: translateY(-100%);
+      animation: navIn 0.6s var(--ease-out) 0.3s forwards;
     }
+    @keyframes navIn { to { transform: translateY(0); } }
     nav.scrolled {
       background: rgba(15,10,7,.92);
       backdrop-filter: blur(12px);
       padding: 14px 0;
       box-shadow: 0 1px 0 rgba(196,151,58,.15);
     }
-    .nav-inner {
-      display: flex; align-items: center; justify-content: space-between;
-    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
     .nav-logo {
       font-family: 'Playfair Display', serif;
       font-size: 22px; font-weight: 700;
@@ -107,17 +145,24 @@
     .nav-links { display: flex; gap: 32px; }
     .nav-links a {
       font-size: 13px; font-weight: 500; letter-spacing: .08em;
-      color: rgba(255,255,255,.7);
-      transition: color var(--transition);
+      color: rgba(255,255,255,.7); position: relative;
+      transition: color var(--t);
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--gold);
+      transition: width 0.3s var(--ease-out);
     }
     .nav-links a:hover { color: var(--gold); }
+    .nav-links a:hover::after { width: 100%; }
     .nav-cta {
       font-size: 13px; font-weight: 700; letter-spacing: .06em;
       color: var(--espresso); background: var(--gold);
       padding: 10px 22px; border-radius: var(--pill);
-      transition: background var(--transition), transform var(--transition);
+      transition: background var(--t), box-shadow var(--t);
     }
-    .nav-cta:hover { background: var(--gold-lt); transform: translateY(-1px); }
+    .nav-cta:hover { background: var(--gold-lt); box-shadow: 0 6px 20px rgba(196,151,58,.4); }
+    .nav-mobile-cta { display: none; }
 
     /* ── HERO ── */
     .hero {
@@ -131,13 +176,30 @@
       position: absolute; inset: 0;
       background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80');
       background-size: cover; background-position: center;
-      opacity: .28;
+      opacity: .28; will-change: transform;
     }
     .hero-grain {
       position: absolute; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
       opacity: .5; pointer-events: none;
     }
+    .hero-content { position: relative; }
+
+    /* status chip */
+    .status-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 500;
+      padding: 8px 18px; border-radius: var(--pill);
+      margin-bottom: 28px;
+      opacity: 0; animation: chipIn 0.5s ease 0.5s forwards;
+    }
+    @keyframes chipIn { to { opacity: 1; } }
+    .status-chip.open  { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(74,222,128,.25); }
+    .status-chip.closed { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
+    .status-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+    /* hero badge */
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 12px; font-weight: 700; letter-spacing: .14em;
@@ -145,82 +207,129 @@
       border: 1px solid rgba(196,151,58,.4);
       padding: 7px 16px; border-radius: var(--pill);
       margin-bottom: 28px; position: relative;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.7s var(--ease-out) 0.7s forwards;
     }
     .hero-badge::before {
       content: ''; width: 6px; height: 6px; border-radius: 50%;
       background: var(--gold); animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; } 50% { opacity: .3; }
-    }
-    .hero-content { position: relative; }
+
+    /* hero h1 word-mask reveal */
     .hero h1 {
       font-family: 'Playfair Display', serif;
       font-size: clamp(52px, 9vw, 100px);
       font-weight: 700; line-height: 1.0;
-      color: var(--white); letter-spacing: -.01em;
+      letter-spacing: -.01em;
     }
-    .hero h1 em {
-      font-style: italic; color: var(--gold);
+    .word-wrap {
+      overflow: hidden; display: block; line-height: 1.05;
     }
+    .word-wrap > span, .word-wrap > em {
+      display: block; color: var(--white);
+      transform: translateY(110%);
+      transition: transform 1s var(--ease-out);
+    }
+    .word-wrap > em { font-style: italic; color: var(--gold); }
+    .hero-loaded .word-wrap:nth-child(1) > span { transform: translateY(0); transition-delay: 0.85s; }
+    .hero-loaded .word-wrap:nth-child(2) > em   { transform: translateY(0); transition-delay: 1.0s; }
+    .hero-loaded .word-wrap:nth-child(3) > span { transform: translateY(0); transition-delay: 1.15s; }
+
     .hero-sub {
       margin-top: 24px; font-size: 16px; font-weight: 300;
       color: rgba(255,255,255,.6); max-width: 480px; line-height: 1.8;
+      opacity: 0; transform: translateY(24px);
+      animation: fadeUp 0.8s var(--ease-out) 1.5s forwards;
     }
-    .hero-actions { margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-actions {
+      margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap;
+      opacity: 0; transform: translateY(24px);
+      animation: fadeUp 0.8s var(--ease-out) 1.75s forwards;
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: rgba(255,255,255,.35); font-size: 11px; letter-spacing: .12em;
+      opacity: 0; animation: fadeUp 0.6s ease 2.2s forwards;
+    }
+    .hero-scroll::after {
+      content: ''; width: 1px; height: 48px;
+      background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent);
+      animation: scrollLine 2s 2.2s infinite;
+    }
+    @keyframes scrollLine {
+      0%   { opacity: 0; transform: scaleY(0); transform-origin: top; }
+      50%  { opacity: 1; }
+      100% { opacity: 0; transform: scaleY(1); transform-origin: top; }
+    }
+
+    /* ── BUTTONS ── */
     .btn-gold {
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 14px; font-weight: 700; letter-spacing: .04em;
       color: var(--espresso); background: var(--gold);
       padding: 15px 32px; border-radius: var(--pill); border: none; cursor: pointer;
-      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      transition: background var(--t), box-shadow var(--t);
       box-shadow: 0 8px 24px rgba(196,151,58,.35);
+      will-change: transform;
     }
-    .btn-gold:hover { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(196,151,58,.45); }
+    .btn-gold:hover { background: var(--gold-lt); box-shadow: 0 12px 32px rgba(196,151,58,.45); }
     .btn-outline {
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 14px; font-weight: 500; letter-spacing: .04em;
       color: rgba(255,255,255,.85); background: transparent;
       padding: 15px 32px; border-radius: var(--pill);
       border: 1px solid rgba(255,255,255,.25);
-      transition: border-color var(--transition), color var(--transition);
-      cursor: pointer;
+      transition: border-color var(--t), color var(--t);
+      cursor: pointer; will-change: transform;
     }
     .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
-    .hero-scroll {
-      position: absolute; bottom: 40px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      color: rgba(255,255,255,.35); font-size: 11px; letter-spacing: .12em;
-    }
-    .hero-scroll::after {
-      content: ''; width: 1px; height: 48px;
-      background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent);
-      animation: scrollLine 2s infinite;
-    }
-    @keyframes scrollLine { 0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
-      50% { opacity: 1; } 100% { opacity: 0; transform: scaleY(1); transform-origin: top; } }
 
-    /* ── STATUS CHIP ── */
-    .status-chip {
-      position: absolute; top: 40px; right: 0;
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 13px; font-weight: 500;
-      padding: 8px 18px; border-radius: var(--pill);
+    /* ── SCROLL ANIMATIONS ── */
+    [data-anim] {
+      will-change: transform, opacity;
     }
-    .status-chip.open  { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(74,222,128,.25); }
-    .status-chip.closed { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
-    .status-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    [data-anim="fade-up"] {
+      opacity: 0; transform: translateY(48px);
+      transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+    }
+    [data-anim="fade-left"] {
+      opacity: 0; transform: translateX(-48px);
+      transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+    }
+    [data-anim="fade-right"] {
+      opacity: 0; transform: translateX(48px);
+      transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+    }
+    [data-anim="scale"] {
+      opacity: 0; transform: scale(0.92);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+    [data-anim="clip"] {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+    }
+    [data-anim].in-view {
+      opacity: 1; transform: none;
+    }
+    /* label reveal line */
+    .reveal-label {
+      overflow: hidden;
+    }
+    .reveal-label span {
+      display: block;
+      transform: translateY(100%);
+      transition: transform 0.6s var(--ease-out);
+    }
+    .reveal-label.in-view span { transform: translateY(0); }
 
     /* ── ABOUT ── */
     .about { background: var(--white); }
-    .about-inner {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-    }
-    .about-label {
-      font-size: 11px; font-weight: 700; letter-spacing: .18em;
-      text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
-    }
+    .about-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .about-label { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
     .about-title {
       font-family: 'Playfair Display', serif;
       font-size: clamp(32px, 4vw, 48px); line-height: 1.2;
@@ -237,39 +346,30 @@
       font-size: 36px; font-weight: 700; color: var(--gold); line-height: 1;
     }
     .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 6px; letter-spacing: .04em; }
-    .about-img {
-      border-radius: var(--r-lg); overflow: hidden;
-      box-shadow: var(--shadow-lg); aspect-ratio: 4/5;
-    }
-    .about-img img { width: 100%; height: 100%; object-fit: cover; }
+    .about-img { border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 4/5; }
+    .about-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease-out); }
+    .about-img:hover img { transform: scale(1.04); }
 
     /* ── MENU ── */
     .menu-section { background: var(--cream); }
     .section-header { text-align: center; margin-bottom: 56px; }
-    .section-label {
-      font-size: 11px; font-weight: 700; letter-spacing: .18em;
-      text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
-    }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(28px, 4vw, 44px); line-height: 1.2; color: var(--ink);
-    }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 4vw, 44px); line-height: 1.2; color: var(--ink); }
     .section-title em { font-style: italic; color: var(--gold); }
-    .menu-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
-    }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     .menu-card {
       background: var(--white); border-radius: var(--r-lg);
       overflow: hidden; box-shadow: var(--shadow-sm);
-      transition: transform var(--transition), box-shadow var(--transition);
+      transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
+      will-change: transform;
     }
-    .menu-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); }
+    .menu-card:hover { transform: translateY(-8px) scale(1.01); box-shadow: var(--shadow-md); }
     .menu-card.featured { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; }
     .menu-card-img { overflow: hidden; }
     .menu-card.featured .menu-card-img { height: 100%; min-height: 260px; }
     .menu-card:not(.featured) .menu-card-img { height: 200px; }
-    .menu-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-    .menu-card:hover .menu-card-img img { transform: scale(1.05); }
+    .menu-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease-out); }
+    .menu-card:hover .menu-card-img img { transform: scale(1.07); }
     .menu-card-body { padding: 28px; display: flex; flex-direction: column; justify-content: center; }
     .menu-tag {
       display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .1em;
@@ -282,9 +382,7 @@
 
     /* ── HOURS ── */
     .hours-section { background: var(--roast); }
-    .hours-inner {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-    }
+    .hours-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
     .hours-title {
       font-family: 'Playfair Display', serif;
       font-size: clamp(28px, 3.5vw, 42px);
@@ -292,12 +390,12 @@
     }
     .hours-title em { font-style: italic; color: var(--gold); }
     .hours-table { width: 100%; border-collapse: collapse; }
-    .hours-table tr { border-bottom: 1px solid rgba(255,255,255,.07); }
-    .hours-table tr:last-child { border-bottom: none; }
-    .hours-table td { padding: 14px 0; font-size: 14px; }
-    .hours-table .day { color: rgba(255,255,255,.5); width: 120px; }
-    .hours-table .time { color: var(--white); font-weight: 500; text-align: right; }
-    .hours-table .closed { color: rgba(239,68,68,.7); }
+    .hours-row { border-bottom: 1px solid rgba(255,255,255,.07); }
+    .hours-row:last-child { border-bottom: none; }
+    .hours-row td { padding: 14px 0; font-size: 14px; }
+    .hours-row .day { color: rgba(255,255,255,.5); width: 120px; }
+    .hours-row .time { color: var(--white); font-weight: 500; text-align: right; }
+    .hours-row .closed { color: rgba(239,68,68,.7); }
     .hours-note {
       margin-top: 28px; padding: 20px 24px;
       background: rgba(196,151,58,.08); border-left: 3px solid var(--gold);
@@ -311,22 +409,16 @@
     /* ── RESERVE ── */
     .reserve-section { background: var(--cream-dk); }
     .reserve-inner { max-width: 600px; margin: 0 auto; }
-    .reserve-card {
-      background: var(--white); border-radius: var(--r-lg);
-      padding: 48px; box-shadow: var(--shadow-md);
-    }
+    .reserve-card { background: var(--white); border-radius: var(--r-lg); padding: 48px; box-shadow: var(--shadow-md); }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .field { display: flex; flex-direction: column; gap: 7px; }
     .field.full { grid-column: span 2; }
-    .field label {
-      font-size: 11px; font-weight: 700; letter-spacing: .12em;
-      text-transform: uppercase; color: var(--ink-soft);
-    }
+    .field label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
     .field input, .field select {
       width: 100%; font-family: inherit; font-size: 15px; color: var(--ink);
       padding: 13px 16px; border: 1.5px solid var(--line);
       border-radius: var(--r-sm); background: var(--cream);
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--t), box-shadow var(--t), background var(--t);
       appearance: none;
     }
     .field input:focus, .field select:focus {
@@ -344,24 +436,25 @@
       width: 100%; padding: 16px; border: none; border-radius: var(--pill);
       font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: .04em;
       color: var(--espresso); background: var(--gold); cursor: pointer;
-      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      transition: background var(--t), box-shadow var(--t);
       box-shadow: 0 6px 20px rgba(196,151,58,.3);
+      will-change: transform;
     }
-    .btn-submit:hover { background: var(--gold-lt); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(196,151,58,.4); }
-    .btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-submit:hover { background: var(--gold-lt); box-shadow: 0 10px 28px rgba(196,151,58,.4); }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
 
     /* ── LOCATION ── */
     .location-section { background: var(--white); }
-    .location-inner {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start;
-    }
+    .location-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
     .location-label { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
     .location-title { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--ink); margin-bottom: 32px; }
     .info-row {
       display: flex; gap: 16px; padding: 20px 0;
       border-bottom: 1px solid var(--line);
+      transition: background 0.2s ease;
     }
     .info-row:first-of-type { border-top: 1px solid var(--line); }
+    .info-row:hover { background: rgba(196,151,58,.03); }
     .info-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
     .info-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px; }
     .info-value { font-size: 15px; color: var(--ink); font-weight: 500; }
@@ -371,9 +464,10 @@
       margin-top: 28px; font-size: 14px; font-weight: 700; letter-spacing: .04em;
       color: var(--white); background: var(--espresso);
       padding: 13px 28px; border-radius: var(--pill);
-      transition: background var(--transition);
+      transition: background var(--t), box-shadow var(--t);
+      will-change: transform;
     }
-    .btn-map:hover { background: var(--mahogany); }
+    .btn-map:hover { background: var(--mahogany); box-shadow: 0 8px 24px rgba(15,10,7,.25); }
     .location-map { border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); position: relative; aspect-ratio: 1; }
     .map-link { display: block; width: 100%; height: 100%; position: relative; }
     .map-link iframe { width: 100%; height: 100%; border: none; display: block; pointer-events: none; }
@@ -382,7 +476,7 @@
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: 20px;
       background: linear-gradient(to top, rgba(15,10,7,.55) 0%, transparent 50%);
-      opacity: 0; transition: opacity var(--transition);
+      opacity: 0; transition: opacity 0.3s ease;
     }
     .map-link:hover .map-overlay { opacity: 1; }
     .map-overlay span {
@@ -393,22 +487,13 @@
     }
 
     /* ── FOOTER ── */
-    footer {
-      background: var(--espresso); padding: 56px 0 40px;
-      border-top: 1px solid rgba(196,151,58,.2);
-    }
-    .footer-inner {
-      display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 20px;
-    }
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; color: var(--white);
-    }
+    footer { background: var(--espresso); padding: 56px 0 40px; border-top: 1px solid rgba(196,151,58,.2); }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .footer-logo { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); }
     .footer-logo span { color: var(--gold); }
     .footer-info { font-size: 13px; color: rgba(255,255,255,.35); margin-top: 8px; line-height: 1.7; }
     .footer-links { display: flex; gap: 24px; }
-    .footer-links a { font-size: 13px; color: rgba(255,255,255,.4); transition: color var(--transition); }
+    .footer-links a { font-size: 13px; color: rgba(255,255,255,.4); transition: color var(--t); }
     .footer-links a:hover { color: var(--gold); }
     .footer-copy { width: 100%; text-align: center; font-size: 12px; color: rgba(255,255,255,.2); margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.06); }
 
@@ -422,13 +507,10 @@
       border: 1px solid rgba(196,151,58,.3);
       box-shadow: 0 8px 32px rgba(0,0,0,.3);
       opacity: 0; pointer-events: none;
-      transition: opacity .25s, transform .25s;
+      transition: opacity .3s var(--ease-out), transform .3s var(--ease-out);
       white-space: nowrap; z-index: 200;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* ── MOBILE NAV ── */
-    .nav-mobile-cta { display: none; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
@@ -453,11 +535,17 @@
       .form-grid { grid-template-columns: 1fr; }
       .field.full { grid-column: span 1; }
       .footer-inner { flex-direction: column; align-items: flex-start; }
-      .status-chip { position: static; margin-bottom: 24px; }
     }
   </style>
 </head>
 <body>
+
+  <!-- PROGRESS BAR -->
+  <div id="progress-bar"></div>
+
+  <!-- CUSTOM CURSOR -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
 
   <!-- NAV -->
   <nav id="navbar">
@@ -470,7 +558,7 @@
           <a href="#hours">영업시간</a>
           <a href="#location">오시는 길</a>
         </div>
-        <a class="nav-cta" href="#reserve">테이크아웃 예약</a>
+        <a class="nav-cta magnetic" href="#reserve">테이크아웃 예약</a>
         <div class="nav-mobile-cta"><a href="#reserve">예약하기</a></div>
       </div>
     </div>
@@ -478,19 +566,21 @@
 
   <!-- HERO -->
   <section class="hero" id="home">
-    <div class="hero-bg"></div>
+    <div class="hero-bg" id="heroBg"></div>
     <div class="hero-grain"></div>
     <div class="container">
       <div class="hero-content">
         <div id="openStatus" class="status-chip"></div>
         <div class="hero-badge">성수동 스페셜티 카페</div>
         <h1 class="serif">
-          Morning<br><em>Brew</em><br>Seoul
+          <span class="word-wrap"><span>Morning</span></span>
+          <span class="word-wrap"><em>Brew</em></span>
+          <span class="word-wrap"><span>Seoul</span></span>
         </h1>
         <p class="hero-sub">매일 직접 로스팅한 생두로 내리는 한 잔.<br>출근 전, 줄 없이 받아가세요.</p>
         <div class="hero-actions">
-          <a class="btn-gold" href="#reserve">☕ 테이크아웃 예약</a>
-          <a class="btn-outline" href="#menu">메뉴 보기</a>
+          <a class="btn-gold magnetic" href="#reserve">☕ 테이크아웃 예약</a>
+          <a class="btn-outline magnetic" href="#menu">메뉴 보기</a>
         </div>
       </div>
     </div>
@@ -502,27 +592,27 @@
     <div class="container">
       <div class="about-inner">
         <div>
-          <div class="about-label">Our Story</div>
-          <h2 class="about-title">성수동의 아침을<br><em>특별하게</em></h2>
-          <p class="about-body">
+          <div class="reveal-label" data-anim="clip"><span class="about-label">Our Story</span></div>
+          <h2 class="about-title" data-anim="fade-up" style="transition-delay:.1s">성수동의 아침을<br><em>특별하게</em></h2>
+          <p class="about-body" data-anim="fade-up" style="transition-delay:.2s">
             서울 성동구 성수동에 자리한 카페 모닝브루(Morning Brew)는 생두를 직접 소량 로스팅해 매일 신선한 원두를 드리퍼로 내리는 스페셜티 커피 전문점입니다. 화요일부터 일요일 오전 8시부터 오후 8시까지 운영하며, 테이크아웃 예약을 이용하면 평균 5분 이내로 음료를 받을 수 있습니다.
           </p>
           <div class="about-stats">
-            <div>
-              <div class="stat-num">5<span style="font-size:20px">분</span></div>
+            <div data-anim="fade-up" style="transition-delay:.05s">
+              <div class="stat-num" data-count="5" data-suffix="분">0분</div>
               <div class="stat-label">평균 픽업 대기</div>
             </div>
-            <div>
+            <div data-anim="fade-up" style="transition-delay:.15s">
               <div class="stat-num">Daily</div>
               <div class="stat-label">직접 로스팅</div>
             </div>
-            <div>
-              <div class="stat-num">08<span style="font-size:20px">시</span></div>
+            <div data-anim="fade-up" style="transition-delay:.25s">
+              <div class="stat-num" data-count="8" data-suffix="시">0시</div>
               <div class="stat-label">오픈 시각</div>
             </div>
           </div>
         </div>
-        <div class="about-img">
+        <div class="about-img" data-anim="scale" style="transition-delay:.15s">
           <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80"
                alt="모닝브루 바리스타가 핸드드립 커피를 내리는 모습" loading="lazy" />
         </div>
@@ -534,11 +624,11 @@
   <section class="menu-section" id="menu">
     <div class="container">
       <div class="section-header">
-        <div class="section-label">Our Menu</div>
-        <h2 class="section-title">오늘의 <em>한 잔</em>을 고르세요</h2>
+        <div class="reveal-label" data-anim="clip"><span class="section-label">Our Menu</span></div>
+        <h2 class="section-title" data-anim="fade-up" style="transition-delay:.1s">오늘의 <em>한 잔</em>을 고르세요</h2>
       </div>
       <div class="menu-grid">
-        <div class="menu-card featured">
+        <div class="menu-card featured" data-anim="scale">
           <div class="menu-card-img">
             <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"
                  alt="모닝브루 핸드드립 커피 시그니처" loading="lazy" />
@@ -550,7 +640,7 @@
             <div class="menu-price">₩5,500</div>
           </div>
         </div>
-        <div class="menu-card">
+        <div class="menu-card" data-anim="fade-up" style="transition-delay:.1s">
           <div class="menu-card-img">
             <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80"
                  alt="오늘의 원두" loading="lazy" />
@@ -562,7 +652,7 @@
             <div class="menu-price">₩4,500</div>
           </div>
         </div>
-        <div class="menu-card">
+        <div class="menu-card" data-anim="fade-up" style="transition-delay:.22s">
           <div class="menu-card-img">
             <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=600&q=80"
                  alt="수제 스콘" loading="lazy" />
@@ -583,18 +673,28 @@
     <div class="container">
       <div class="hours-inner">
         <div>
-          <div class="section-label" style="color:rgba(196,151,58,.7)">Hours</div>
-          <h2 class="hours-title">언제든<br><em>기다립니다</em></h2>
-          <table class="hours-table">
-            <tr><td class="day">화요일 – 금요일</td><td class="time">08:00 – 20:00</td></tr>
-            <tr><td class="day">토요일 – 일요일</td><td class="time">09:00 – 18:00</td></tr>
-            <tr><td class="day">월요일</td><td class="time closed">정기 휴무</td></tr>
+          <div class="reveal-label" data-anim="clip" style="color:rgba(196,151,58,.7)">
+            <span class="section-label">Hours</span>
+          </div>
+          <h2 class="hours-title" data-anim="fade-up" style="transition-delay:.1s">언제든<br><em>기다립니다</em></h2>
+          <table class="hours-table" style="width:100%;border-collapse:collapse;">
+            <tbody>
+              <tr class="hours-row" data-anim="fade-left" style="transition-delay:.05s">
+                <td class="day">화요일 – 금요일</td><td class="time">08:00 – 20:00</td>
+              </tr>
+              <tr class="hours-row" data-anim="fade-left" style="transition-delay:.15s">
+                <td class="day">토요일 – 일요일</td><td class="time">09:00 – 18:00</td>
+              </tr>
+              <tr class="hours-row" data-anim="fade-left" style="transition-delay:.25s">
+                <td class="day">월요일</td><td class="time closed">정기 휴무</td>
+              </tr>
+            </tbody>
           </table>
-          <div class="hours-note">
+          <div class="hours-note" data-anim="fade-up" style="transition-delay:.3s">
             <p>테이크아웃 예약은 <strong>영업시간 30분 전까지</strong> 접수됩니다.<br>예약하시면 <strong>5분 이내</strong>로 준비해 드립니다.</p>
           </div>
         </div>
-        <div class="hours-img">
+        <div class="hours-img" data-anim="scale" style="transition-delay:.2s">
           <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=700&q=80"
                alt="모닝브루 카페 인테리어" loading="lazy" />
         </div>
@@ -606,11 +706,11 @@
   <section class="reserve-section" id="reserve">
     <div class="container">
       <div class="section-header">
-        <div class="section-label">Reservation</div>
-        <h2 class="section-title">테이크아웃 <em>예약</em></h2>
+        <div class="reveal-label" data-anim="clip"><span class="section-label">Reservation</span></div>
+        <h2 class="section-title" data-anim="fade-up" style="transition-delay:.1s">테이크아웃 <em>예약</em></h2>
       </div>
       <div class="reserve-inner">
-        <div class="reserve-card">
+        <div class="reserve-card" data-anim="scale" style="transition-delay:.15s">
           <div id="formError" class="form-error" style="margin-bottom:20px;"></div>
           <form id="resForm" autocomplete="off">
             <div class="form-grid">
@@ -646,7 +746,7 @@
               </div>
             </div>
             <div style="margin-top:24px;">
-              <button type="submit" class="btn-submit" id="submitBtn">테이크아웃 예약하기</button>
+              <button type="submit" class="btn-submit magnetic" id="submitBtn">테이크아웃 예약하기</button>
             </div>
           </form>
         </div>
@@ -659,9 +759,9 @@
     <div class="container">
       <div class="location-inner">
         <div>
-          <div class="location-label">Location</div>
-          <h2 class="location-title serif">오시는 길</h2>
-          <div class="info-row">
+          <div class="reveal-label" data-anim="clip"><span class="location-label">Location</span></div>
+          <h2 class="location-title serif" data-anim="fade-left" style="transition-delay:.1s">오시는 길</h2>
+          <div class="info-row" data-anim="fade-left" style="transition-delay:.1s">
             <div class="info-icon">📍</div>
             <div>
               <div class="info-label">주소</div>
@@ -669,7 +769,7 @@
               <div class="info-sub">성수역 3번 출구에서 도보 5분</div>
             </div>
           </div>
-          <div class="info-row">
+          <div class="info-row" data-anim="fade-left" style="transition-delay:.2s">
             <div class="info-icon">🚇</div>
             <div>
               <div class="info-label">대중교통</div>
@@ -677,7 +777,7 @@
               <div class="info-sub">3번 출구 → 도보 약 5분</div>
             </div>
           </div>
-          <div class="info-row">
+          <div class="info-row" data-anim="fade-left" style="transition-delay:.3s">
             <div class="info-icon">📞</div>
             <div>
               <div class="info-label">연락처</div>
@@ -685,11 +785,12 @@
               <div class="info-sub"><a href="https://instagram.com/morningbrew_official" target="_blank" rel="noopener" style="color:var(--ink-soft)">@morningbrew_official</a></div>
             </div>
           </div>
-          <a class="btn-map" href="https://map.naver.com/v5/search/성수동%20모닝브루" target="_blank" rel="noopener">
+          <a class="btn-map magnetic" href="https://map.naver.com/v5/search/성수동%20모닝브루" target="_blank" rel="noopener"
+             data-anim="fade-up" style="transition-delay:.35s">
             🗺️ 네이버 지도에서 보기
           </a>
         </div>
-        <div class="location-map">
+        <div class="location-map" data-anim="scale" style="transition-delay:.2s">
           <a class="map-link"
              href="https://map.naver.com/v5/search/성수역%203번출구"
              target="_blank" rel="noopener"
@@ -709,7 +810,7 @@
   <!-- FOOTER -->
   <footer>
     <div class="container">
-      <div class="footer-inner">
+      <div class="footer-inner" data-anim="fade-up">
         <div>
           <div class="footer-logo">Morning<span>Brew</span></div>
           <div class="footer-info">
@@ -731,39 +832,159 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // ── 영업 상태 ──────────────────────────────────────────────
+    /* ─────────────────────────────────────────────────────────
+       1. 영업 상태
+    ───────────────────────────────────────────────────────── */
     (function () {
-      var now = new Date();
-      var day = now.getDay();
+      var now = new Date(), day = now.getDay();
       var min = now.getHours() * 60 + now.getMinutes();
       var el  = document.getElementById('openStatus');
-      var isOpen = false;
+      var open = false;
       if (day !== 1) {
-        if (day >= 6) { isOpen = min >= 540 && min < 1080; }  // 토·일 09–18
-        else          { isOpen = min >= 480 && min < 1200; }  // 화–금 08–20
+        open = (day >= 6) ? (min >= 540 && min < 1080)
+                          : (min >= 480 && min < 1200);
       }
-      el.className = 'status-chip ' + (isOpen ? 'open' : 'closed');
-      el.innerHTML = '<span class="dot"></span>' + (isOpen ? '지금 영업 중' : '영업 종료');
+      el.className = 'status-chip ' + (open ? 'open' : 'closed');
+      el.innerHTML = '<span class="dot"></span>' + (open ? '지금 영업 중' : '영업 종료');
     })();
 
-    // ── 스크롤 네비 ───────────────────────────────────────────
+    /* ─────────────────────────────────────────────────────────
+       2. 히어로 텍스트 마스크 리빌
+    ───────────────────────────────────────────────────────── */
+    setTimeout(function () {
+      document.querySelector('.hero').classList.add('hero-loaded');
+    }, 50);
+
+    /* ─────────────────────────────────────────────────────────
+       3. 스크롤 진행바 + 네비 + 패럴랙스
+    ───────────────────────────────────────────────────────── */
+    var progressBar = document.getElementById('progress-bar');
+    var navbar      = document.getElementById('navbar');
+    var heroBg      = document.getElementById('heroBg');
+    var heroH       = document.querySelector('.hero').offsetHeight;
+
     window.addEventListener('scroll', function () {
-      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+      var sy  = window.scrollY;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+
+      // 진행바
+      progressBar.style.width = (sy / max * 100) + '%';
+
+      // 네비 배경
+      navbar.classList.toggle('scrolled', sy > 60);
+
+      // 패럴랙스: 히어로 배경 0.4배 속도
+      if (sy < heroH) {
+        heroBg.style.transform = 'translateY(' + (sy * 0.4) + 'px)';
+      }
+    }, { passive: true });
+
+    /* ─────────────────────────────────────────────────────────
+       4. Intersection Observer — 스크롤 애니메이션
+    ───────────────────────────────────────────────────────── */
+    var iObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        el.classList.add('in-view');
+        // 카운터
+        var target = parseInt(el.dataset.count, 10);
+        if (!isNaN(target)) animateCount(el, target, el.dataset.suffix || '');
+        iObs.unobserve(el);
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('[data-anim]').forEach(function (el) { iObs.observe(el); });
+
+    /* ─────────────────────────────────────────────────────────
+       5. 숫자 카운터 애니메이션
+    ───────────────────────────────────────────────────────── */
+    function animateCount(el, target, suffix) {
+      var start = 0, dur = 1200, startTime = null;
+      function step(ts) {
+        if (!startTime) startTime = ts;
+        var p = Math.min((ts - startTime) / dur, 1);
+        var ease = 1 - Math.pow(1 - p, 3); // easeOutCubic
+        var val  = Math.round(ease * target);
+        if (target === 8) {
+          el.textContent = (val < 10 ? '0' : '') + val + suffix;
+        } else {
+          el.textContent = val + suffix;
+        }
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       6. 커스텀 커서
+    ───────────────────────────────────────────────────────── */
+    (function () {
+      var dot  = document.getElementById('cursor-dot');
+      var ring = document.getElementById('cursor-ring');
+      if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+      var mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', function (e) {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left  = mx + 'px';
+        dot.style.top   = my + 'px';
+      });
+
+      // ring은 lerp로 부드럽게 따라옴
+      (function loop() {
+        rx += (mx - rx) * 0.14;
+        ry += (my - ry) * 0.14;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(loop);
+      })();
+
+      // 인터랙티브 요소 위 호버
+      document.querySelectorAll('a, button, input, select, label, .menu-card, .map-link').forEach(function (el) {
+        el.addEventListener('mouseenter', function () { ring.classList.add('hovered'); });
+        el.addEventListener('mouseleave', function () { ring.classList.remove('hovered'); });
+      });
+
+      // 클릭 피드백
+      document.addEventListener('mousedown', function () { ring.classList.add('clicking'); });
+      document.addEventListener('mouseup',   function () { ring.classList.remove('clicking'); });
+
+      // 창 밖으로 나가면 숨김
+      document.addEventListener('mouseleave', function () { dot.style.opacity = '0'; ring.style.opacity = '0'; });
+      document.addEventListener('mouseenter', function () { dot.style.opacity = '1'; ring.style.opacity = '1'; });
+    })();
+
+    /* ─────────────────────────────────────────────────────────
+       7. 마그네틱 버튼
+    ───────────────────────────────────────────────────────── */
+    document.querySelectorAll('.magnetic').forEach(function (btn) {
+      btn.addEventListener('mousemove', function (e) {
+        var r  = btn.getBoundingClientRect();
+        var dx = (e.clientX - (r.left + r.width  / 2)) * 0.22;
+        var dy = (e.clientY - (r.top  + r.height / 2)) * 0.22;
+        btn.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      });
+      btn.addEventListener('mouseleave', function () {
+        btn.style.transition = 'transform 0.5s ' + 'cubic-bezier(0.16,1,0.3,1)';
+        btn.style.transform  = 'translate(0,0)';
+        setTimeout(function () { btn.style.transition = ''; }, 500);
+      });
     });
 
-    // ── Supabase ──────────────────────────────────────────────
+    /* ─────────────────────────────────────────────────────────
+       8. Supabase 예약 폼
+    ───────────────────────────────────────────────────────── */
     var sb = window.supabase.createClient(
       'https://qcgdmkrysvjjvoxzhlar.supabase.co',
       'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S'
     );
-
     var form      = document.getElementById('resForm');
     var formError = document.getElementById('formError');
     var submitBtn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
-
       var name   = document.getElementById('name').value.trim();
       var phone  = document.getElementById('phone').value.trim();
       var date   = document.getElementById('date').value;
@@ -779,12 +1000,12 @@
       if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
 
       hideError();
-      submitBtn.disabled = true;
+      submitBtn.disabled    = true;
       submitBtn.textContent = '처리 중…';
 
       var result = await sb.from('reservations').insert([{ name, phone, menu, date, people, pickup }]);
 
-      submitBtn.disabled = false;
+      submitBtn.disabled    = false;
       submitBtn.textContent = '테이크아웃 예약하기';
 
       if (result.error) return showError('잠시 후 다시 시도해 주세요.');
@@ -797,7 +1018,6 @@
 
     function showError(msg) { formError.textContent = msg; formError.classList.add('show'); }
     function hideError()    { formError.classList.remove('show'); }
-
     function showToast(msg) {
       var t = document.getElementById('toast');
       t.textContent = msg; t.classList.add('show');
