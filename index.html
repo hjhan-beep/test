@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -592,8 +593,8 @@
             </div>
           </div>
           <div class="field">
-            <label for="menu">메뉴</label>
-            <select id="menu">
+            <label for="menuSelect">메뉴</label>
+            <select id="menuSelect">
               <option value="">-- 메뉴를 선택하세요 --</option>
               <option value="핸드드립 커피 (5,500원)">☕ 핸드드립 커피 (5,500원)</option>
               <option value="오늘의 원두 (4,500원)">🫘 오늘의 원두 (4,500원)</option>
@@ -737,7 +738,7 @@
       const phone = document.getElementById('phone').value.trim();
       const date = document.getElementById('date').value;
       const pickup = document.getElementById('pickup').value;
-      const menu = document.getElementById('menu').value;
+      const menu = document.getElementById('menuSelect').value;
       const people = parseInt(document.getElementById('people').value, 10);
 
       if (!name) return showError('이름을 입력해 주세요.');
@@ -754,7 +755,7 @@
       render();
       form.reset();
       document.getElementById('people').value = 1;
-      document.getElementById('menu').value = '';
+      document.getElementById('menuSelect').value = '';
       document.getElementById('name').focus();
       showToast('✅ 예약이 접수되었습니다!');
     });
