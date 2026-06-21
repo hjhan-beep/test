@@ -535,7 +535,7 @@
     // ===== Supabase 초기화 =====
     const SUPABASE_URL  = 'https://qcgdmkrysvjjvoxzhlar.supabase.co';
     const SUPABASE_KEY  = 'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S';
-    const supabase      = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sbClient      = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ===== localStorage (예약 목록 UI용) =====
     const STORAGE_KEY = 'morningbrew_reservations';
@@ -590,7 +590,7 @@
       submitBtn.textContent = '처리 중…';
 
       // Supabase INSERT
-      const { error } = await supabase
+      const { error } = await sbClient
         .from('reservations')
         .insert([{ name, phone, menu, time, people, pickup }]);
 
