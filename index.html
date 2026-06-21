@@ -251,7 +251,8 @@
 
     .field { margin-bottom: 14px; }
     .field label { display: block; font-size: 13px; font-weight: 700; color: var(--brand-strong); margin-bottom: 6px; }
-    .field input {
+    .field input,
+    .field select {
       width: 100%;
       font-size: 16px;
       font-family: inherit;
@@ -262,7 +263,8 @@
       background: #fffdfa;
       transition: border-color 0.12s ease, box-shadow 0.12s ease;
     }
-    .field input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+    .field input:focus,
+    .field select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
     .field .hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
@@ -590,6 +592,16 @@
             </div>
           </div>
           <div class="field">
+            <label for="menu">메뉴</label>
+            <select id="menu">
+              <option value="">-- 메뉴를 선택하세요 --</option>
+              <option value="핸드드립 커피 (5,500원)">☕ 핸드드립 커피 (5,500원)</option>
+              <option value="오늘의 원두 (4,500원)">🫘 오늘의 원두 (4,500원)</option>
+              <option value="수제 스콘 (3,500원)">🥐 수제 스콘 (3,500원)</option>
+              <option value="계절 과일 에이드 (6,000원)">🍑 계절 과일 에이드 (6,000원)</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="people">인원수</label>
             <input type="number" id="people" min="1" value="1" inputmode="numeric" />
           </div>
@@ -725,21 +737,24 @@
       const phone = document.getElementById('phone').value.trim();
       const date = document.getElementById('date').value;
       const pickup = document.getElementById('pickup').value;
+      const menu = document.getElementById('menu').value;
       const people = parseInt(document.getElementById('people').value, 10);
 
       if (!name) return showError('이름을 입력해 주세요.');
       if (!phone) return showError('연락처를 입력해 주세요.');
       if (!date) return showError('픽업 날짜를 선택해 주세요.');
       if (!pickup) return showError('픽업 시간을 선택해 주세요.');
+      if (!menu) return showError('메뉴를 선택해 주세요.');
       if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
 
       hideError();
 
-      reservations.push({ id: nextId++, name, phone, date, pickup, people, status: 'waiting' });
+      reservations.push({ id: nextId++, name, phone, date, pickup, menu, people, status: 'waiting' });
       save();
       render();
       form.reset();
       document.getElementById('people').value = 1;
+      document.getElementById('menu').value = '';
       document.getElementById('name').focus();
       showToast('✅ 예약이 접수되었습니다!');
     });
@@ -818,7 +833,7 @@
               '<div class="res-name">' + escapeHtml(r.name) +
                 '<span class="res-time">⏰ ' + dateText + escapeHtml(r.pickup || '') + '</span>' +
               '</div>' +
-              '<div class="res-meta">📞 ' + escapeHtml(r.phone) + ' · 👤 ' + r.people + '명</div>' +
+              '<div class="res-meta">📞 ' + escapeHtml(r.phone) + ' · 👤 ' + r.people + '명' + (r.menu ? ' · 🧾 ' + escapeHtml(r.menu) : '') + '</div>' +
             '</div>' +
             '<div class="res-actions">' +
               '<select class="status-select" data-id="' + r.id + '">' + options + '</select>' +
