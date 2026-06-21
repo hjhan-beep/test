@@ -39,6 +39,9 @@
   }
   </script>
 
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -526,9 +529,15 @@
       const toast = document.getElementById('toast');
       toast.textContent = msg;
       toast.classList.add('show');
-      setTimeout(function () { toast.classList.remove('show'); }, 3000);
+      setTimeout(function () { toast.classList.remove('show'); }, 5000);
     }
 
+    // ===== Supabase 초기화 =====
+    const SUPABASE_URL  = 'https://qcgdmkrysvjjvoxzhlar.supabase.co';
+    const SUPABASE_KEY  = 'sb_publishable_Ilsd3M63DIwrzd90yUpjUA_aFPc8N5S';
+    const supabase      = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ===== localStorage (예약 목록 UI용) =====
     const STORAGE_KEY = 'morningbrew_reservations';
     let reservations = [];
     let nextId = 1;
@@ -557,33 +566,51 @@
     const listEl    = document.getElementById('resList');
     const countPill = document.getElementById('countPill');
     const resetBtn  = document.getElementById('resetBtn');
+    const submitBtn = form.querySelector('button[type="submit"]');
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
 
       const name   = document.getElementById('name').value.trim();
       const phone  = document.getElementById('phone').value.trim();
-      const date   = document.getElementById('date').value;
+      const time   = document.getElementById('date').value;      // 날짜 → DB: time
       const pickup = document.getElementById('pickup').value;
       const menu   = document.getElementById('menuSelect').value;
       const people = parseInt(document.getElementById('people').value, 10);
 
-      if (!name)                   return showError('이름을 입력해 주세요.');
-      if (!phone)                  return showError('연락처를 입력해 주세요.');
-      if (!date)                   return showError('픽업 날짜를 선택해 주세요.');
-      if (!pickup)                 return showError('픽업 시간을 선택해 주세요.');
-      if (!menu)                   return showError('메뉴를 선택해 주세요.');
-      if (!people || people < 1)   return showError('인원수는 1명 이상이어야 합니다.');
+      if (!name)                 return showError('이름을 입력해 주세요.');
+      if (!phone)                return showError('연락처를 입력해 주세요.');
+      if (!time)                 return showError('픽업 날짜를 선택해 주세요.');
+      if (!pickup)               return showError('픽업 시간을 선택해 주세요.');
+      if (!menu)                 return showError('메뉴를 선택해 주세요.');
+      if (!people || people < 1) return showError('인원수는 1명 이상이어야 합니다.');
 
       hideError();
-      reservations.push({ id: nextId++, name, phone, date, pickup, menu, people, status: 'waiting' });
+      submitBtn.disabled = true;
+      submitBtn.textContent = '처리 중…';
+
+      // Supabase INSERT
+      const { error } = await supabase
+        .from('reservations')
+        .insert([{ name, phone, menu, time, people, pickup }]);
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🥡 테이크아웃 예약하기';
+
+      if (error) {
+        console.error('Supabase error:', error);
+        return showError('잠시 후 다시 시도해주세요.');
+      }
+
+      // 로컬 목록에도 반영
+      reservations.push({ id: nextId++, name, phone, date: time, pickup, menu, people, status: 'waiting' });
       save();
       render();
       form.reset();
       document.getElementById('people').value = 1;
       document.getElementById('menuSelect').value = '';
       document.getElementById('name').focus();
-      showToast('✅ 예약이 접수되었습니다!');
+      showToast('✅ 예약이 접수되었습니다! 방문 전날 연락드리겠습니다.');
     });
 
     listEl.addEventListener('click', function (e) {
